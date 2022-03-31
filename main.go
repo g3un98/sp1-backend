@@ -11,12 +11,6 @@ import (
 	"service"
 )
 
-// 서비스 이름과 핸들러를 묶어주기 위한 구조체
-type serviceHandler struct {
-	name    string
-	handler func()
-}
-
 // API 서버가 동작하는지 확인하기 위한 함수
 func helloWorld(w http.ResponseWriter, _ *http.Request) {
 	fmt.Fprintln(w, "Hello API!")
@@ -27,9 +21,9 @@ func helloWorld(w http.ResponseWriter, _ *http.Request) {
 // 각 서비스 핸들러 호출
 func handleRequests() {
 	var (
-		// 각 서비스 이름과 핸들러를 묶어서 선언
-		services = [...]serviceHandler{
-			{name: "Netflix", handler: service.HandleNetflix},
+		// 핸들러 초기화를 위해, 각 서비스를 배열에 삽입
+		services = [...]service.Servicer{
+			service.Netflix{},
 		}
 		// 동기화 작업을 위한 WaitGroup
 		wg sync.WaitGroup
@@ -41,12 +35,12 @@ func handleRequests() {
 	// services 각 서비스의 핸들러 호출
 	for _, s := range services {
 		wg.Add(1)
-		go func(s serviceHandler) {
+		go func(s service.Servicer) {
 			defer wg.Done()
 
-			log.Printf("Prepare %s APIs\n", s.name)
-			s.handler()
-			log.Printf("%s APIs are ready\n", s.name)
+			log.Printf("Prepare %s APIs\n", s.GetName())
+			s.Handler()
+			log.Printf("%s APIs are ready\n", s.GetName())
 		}(s)
 	}
 
