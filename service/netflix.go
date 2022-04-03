@@ -30,7 +30,7 @@ func (n Netflix) Hello(w http.ResponseWriter, _ *http.Request) {
 
 // Netflix 계정 정보를 가져오는 함수
 func (n Netflix) Info(w http.ResponseWriter, r *http.Request) {
-	log.Println("[/netflix/Info] Netflix.Info")
+	log.Println("[/netflix/info] Netflix.Info")
 
     // 리퀘스트로부터 계정 id, pw를 받아옴
     var account Account
