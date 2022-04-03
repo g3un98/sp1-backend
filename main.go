@@ -17,7 +17,7 @@ func helloWorld(w http.ResponseWriter, _ *http.Request) {
 	log.Println("[/] helloWorld")
 }
 
-// localhost:8080으로 API 서버 시작
+// localhost:8000으로 API 서버 시작
 // 각 서비스 핸들러 호출
 func handleRequests() {
 	var (
@@ -47,9 +47,9 @@ func handleRequests() {
 	// 모든 핸들러가 동작을 완료할 때까지 대기
 	wg.Wait()
 
-	// localhost:8080으로 서버 시작
+	// localhost:8000으로 서버 시작
 	// 에러가 발생할 시, 로그 작성 및 프로그램 종료
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8000", nil))
 }
 
 // API 서버 시작 로그를 남기고, 요청 핸들러 호출
