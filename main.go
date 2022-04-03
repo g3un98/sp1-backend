@@ -13,8 +13,8 @@ import (
 
 // API 서버가 동작하는지 확인하기 위한 함수
 func helloWorld(w http.ResponseWriter, _ *http.Request) {
-	fmt.Fprintln(w, "Hello API!")
 	log.Println("[/] helloWorld")
+	fmt.Fprintln(w, "Hello API!")
 }
 
 // localhost:8000으로 API 서버 시작
