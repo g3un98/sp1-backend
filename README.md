@@ -2,7 +2,7 @@
 
 An API server in Go.
 
-## Enviroment
+## Enviroments
 
 ```text
 golang v1.18
