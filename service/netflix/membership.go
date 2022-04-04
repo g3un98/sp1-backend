@@ -2,6 +2,7 @@
 
 package netflix
 
+// 멤버십 타입 정의
 type membership int
 
 // Netflix 멤버십 종류

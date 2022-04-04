@@ -1,4 +1,4 @@
-// Netflix 관련 API 제공
+// Netflix API 구현
 
 package netflix
 
@@ -14,7 +14,7 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-// 메소드를 구현하기 위해, 빈 구조체 선언
+// Netflix 구조체 선언
 type Netflix struct {
     ctx context.Context
 }
@@ -24,14 +24,13 @@ func (n Netflix) GetName() (name string) {
     return "Netflix"
 }
 
-// Netflix 파싱이 동작하는지 확인하기 위한 함수
+// Netflix 파싱이 동작하는지 확인
 func (n *Netflix) Hello(w http.ResponseWriter, _ *http.Request) {
 	log.Println("[/netflix] Netflix.Hello")
-
 	fmt.Fprintln(w, "Hello Netflix!")
 }
 
-// Netflix 로그인
+// Netflix 웹사이트 로그인
 func (n *Netflix) Login(a Account) (msg string, err error) {
     var url string
 
@@ -69,7 +68,7 @@ func (n *Netflix) Login(a Account) (msg string, err error) {
     return
 }
 
-// Netflix 로그아웃
+// Netflix 웹사이트 로그아웃
 func (n *Netflix) Logout() (err error) {
     return chromedp.Run(
         n.ctx,
@@ -77,11 +76,11 @@ func (n *Netflix) Logout() (err error) {
     )
 }
 
-// Netflix 계정 정보를 가져오는 함수
+// Netflix 계정 정보 조회
 func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 	log.Println("[/netflix/info] Netflix.Info")
 
-    // 리퀘스트로부터 계정 id, pw를 받아옴
+    // 요청으로부터 id, pw
     var account Account
     json.NewDecoder(r.Body).Decode(&account)
 
@@ -90,7 +89,6 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
         //chromedp.WithDebugf(log.Printf),
     )
     defer cancel()
-
     ctx, cancel = context.WithTimeout(ctx, 1 * time.Minute)
     defer cancel()
 
@@ -110,7 +108,7 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
         }
     }()
 
-    // 계정 정보를 가져옴
+    // 계정 정보 조회
     if err := chromedp.Run(
         ctx,
         chromedp.Navigate(URI_INFO),
@@ -131,7 +129,7 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintln(w, account)
 }
 
-// Netflix 핸들러를 패턴에 맞게 연결
+// 패턴에 맞게 메소드 연결
 func (n Netflix) Handler() {
     http.HandleFunc("/netflix", n.Hello)
     http.HandleFunc("/netflix/info", n.Info)
