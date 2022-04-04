@@ -2,8 +2,6 @@ module github.com/g3un/sp1-backend
 
 go 1.18
 
-require service v0.0.0
-
 require (
 	github.com/chromedp/cdproto v0.0.0-20220321060548-7bc2623472b3 // indirect
 	github.com/chromedp/chromedp v0.8.0 // indirect
@@ -15,5 +13,3 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	golang.org/x/sys v0.0.0-20220403020550-483a9cbc67c0 // indirect
 )
-
-replace service => ./service
