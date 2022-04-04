@@ -8,10 +8,11 @@ import (
 	"net/http"
 	"sync"
 
-	"service"
+	"github.com/g3un/sp1-backend/service"
+	"github.com/g3un/sp1-backend/service/netflix"
 )
 
-// API 서버가 동작하는지 확인하기 위한 함수
+// API 서버가 동작하는지 확인
 func helloWorld(w http.ResponseWriter, _ *http.Request) {
 	log.Println("[/] helloWorld")
 	fmt.Fprintln(w, "Hello API!")
@@ -23,7 +24,7 @@ func handleRequests() {
 	var (
 		// 핸들러 초기화를 위해, 각 서비스를 배열에 삽입
 		services = [...]service.Servicer{
-			service.Netflix{},
+			netflix.Netflix{},
 		}
 		// 동기화 작업을 위한 WaitGroup
 		wg sync.WaitGroup
@@ -32,7 +33,7 @@ func handleRequests() {
 	// "/" 경로와 helloWorld 함수를 연결
 	http.HandleFunc("/", helloWorld)
 
-	// services 각 서비스의 핸들러 호출
+	// 배열 속 각 서비스의 핸들러 호출
 	for _, s := range services {
 		wg.Add(1)
 		go func(s service.Servicer) {
@@ -48,7 +49,7 @@ func handleRequests() {
 	wg.Wait()
 
 	// localhost:8000으로 서버 시작
-	// 에러가 발생할 시, 로그 작성 및 프로그램 종료
+	// 에러 발생 시, 로그 작성 및 프로그램 종료
 	log.Fatal(http.ListenAndServe(":8000", nil))
 }
 
