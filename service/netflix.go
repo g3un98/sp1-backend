@@ -109,6 +109,7 @@ func (n *Netflix) Login(a Account) (msg string, err error) {
 func (n *Netflix) Logout() (err error) {
 	return chromedp.Run(
 		n.ctx,
+
 		chromedp.Navigate(URI_LOGOUT),
 	)
 }
@@ -117,40 +118,77 @@ func (n *Netflix) Logout() (err error) {
 func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 	log.Println("[/netflix/info] Netflix.Info")
 
-	// 요청으로부터 id, pw
-	var account Account
-	json.NewDecoder(r.Body).Decode(&account)
+	// 요청-응답 처리 과정에서 사용할 변수
+	var (
+		resp     = make(map[string]interface{})
+		jsonResp []byte
+		err      error
+	)
 
-	// 웹 접속을 위한 컨텐스트 선언
+	// POST 메소드가 아닌 요청은 405 에러 반환
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Header().Set("Content-type", "application/json")
+		resp["message"] = http.StatusText(http.StatusMethodNotAllowed)
+		jsonResp, err = json.Marshal(resp)
+		if err != nil {
+			log.Fatalf(`An error has occurred while JSON Marshal: %s\n`, err)
+		}
+		if _, err = w.Write(jsonResp); err != nil {
+			log.Fatalf("An error has occurred while response: %s\n", err)
+		}
+		return
+	}
+
+	// 웹사이트 접속을 위한 컨텐스트 선언 및 1분 타임아웃 설정
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
 		//chromedp.WithDebugf(log.Printf),
 	)
 	defer cancel()
-
-	// 1분 타임아웃 설정
 	ctx, cancel = context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
-
 	n.ctx = ctx
+
+	var (
+		// 유저 정보를 담을 구조체 변수
+		account Account
+
+		// 가공 전 데이터를 담을 변수
+		rawPayment, rawDate, rawMembership string
+
+		// 가공 된 데이터를 담을 변수
+		payment          []string
+		year, month, day int
+
+		dummy string
+	)
+
+	json.NewDecoder(r.Body).Decode(&account)
 
 	// 로그인
 	if msg, err := n.Login(account); err != nil {
-		log.Fatal(err)
+		log.Fatalf(`An error has occurred while login: %s\n`, err)
 	} else if msg != "" {
-		fmt.Fprintln(w, msg)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("Content-type", "application/json")
+		resp["message"] = msg
+		jsonResp, err = json.Marshal(resp)
+		if err != nil {
+			log.Fatalf(`An error has occurred while JSON Marshal: %s\n`, err)
+		}
+		if _, err = w.Write(jsonResp); err != nil {
+			log.Fatalf("An error has occurred while response: %s\n", err)
+		}
 		return
 	}
 
 	// 로그아웃
 	defer func() {
 		if err := n.Logout(); err != nil {
-			log.Fatal(err)
+			log.Fatalf(`An error has occurred while logout: %s\n`, err)
 		}
 	}()
-
-	// 가공 전 데이터를 저장하는 변수
-	var rawPayment, rawDate, rawMembership string
 
 	// 계정 정보 조회
 	if err := chromedp.Run(
@@ -167,15 +205,9 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		chromedp.WaitVisible(SEL_INFO_MEMBERSHIP),
 		chromedp.Text(SEL_INFO_MEMBERSHIP, &rawMembership, chromedp.NodeVisible),
 	); err != nil {
-		log.Fatal(err)
+		log.Fatalf(`An error has occurred while load account infomation: %s\n`, err)
 	}
 
-	// 가공 과정에서 사용하는 변수
-	var (
-		payment          []string
-		year, month, day int
-		dummy            string
-	)
 	payment = strings.Split(rawPayment, "\n")
 	fmt.Sscanf(rawDate, "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy)
 
@@ -197,15 +229,21 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 	case "프리미엄":
 		account.Membership.Type = MEMBERSHIP_PREMIUM
 		account.Membership.Cost = MEMBERSHIP_COST_PREMIUM
+	default:
+		log.Fatalf(`An error has occurred while parse membership infomation: %s\n`, err)
 	}
 
-	// Account 구조체를 json 형식으로 변환
-	res, err := json.Marshal(account)
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-type", "application/json")
+	resp["message"] = http.StatusText(http.StatusOK)
+	resp["account"] = account
+	jsonResp, err = json.Marshal(resp)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf(`An error has occurred while JSON Marshal: %s\n`, err)
 	}
-
-	fmt.Fprintln(w, string(res))
+	if _, err = w.Write(jsonResp); err != nil {
+		log.Fatalf("An error has occurred while response: %s\n", err)
+	}
 }
 
 // 패턴에 맞게 메소드 연결
