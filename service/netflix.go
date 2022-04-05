@@ -135,7 +135,7 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 			log.Fatalf(`An error has occurred while JSON Marshal: %s\n`, err)
 		}
 		if _, err = w.Write(jsonResp); err != nil {
-			log.Fatalf("An error has occurred while response: %s\n", err)
+			log.Fatalf("An error has occurred while respond: %s\n", err)
 		}
 		return
 	}
@@ -178,7 +178,7 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 			log.Fatalf(`An error has occurred while JSON Marshal: %s\n`, err)
 		}
 		if _, err = w.Write(jsonResp); err != nil {
-			log.Fatalf("An error has occurred while response: %s\n", err)
+			log.Fatalf("An error has occurred while respond: %s\n", err)
 		}
 		return
 	}
@@ -242,7 +242,7 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf(`An error has occurred while JSON Marshal: %s\n`, err)
 	}
 	if _, err = w.Write(jsonResp); err != nil {
-		log.Fatalf("An error has occurred while response: %s\n", err)
+		log.Fatalf("An error has occurred while respond: %s\n", err)
 	}
 }
 
