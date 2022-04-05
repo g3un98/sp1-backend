@@ -3,7 +3,7 @@
 package service
 
 type Payment struct {
-    Type string `json:"type"`
-    Detail string `json:"detail"`
-    Next string `json:"next"`
+	Type   string `json:"type"`
+	Detail string `json:"detail"`
+	Next   string `json:"next"`
 }

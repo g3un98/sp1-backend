@@ -3,6 +3,6 @@
 package service
 
 type Membership struct {
-    Type int `json:"type"`
-    Cost int `json:"cost"`
+	Type int `json:"type"`
+	Cost int `json:"cost"`
 }
