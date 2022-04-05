@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/g3un/sp1-backend/service"
-	"github.com/g3un/sp1-backend/service/netflix"
 )
 
 // API 서버가 동작하는지 확인
@@ -24,7 +23,7 @@ func handleRequests() {
 	var (
 		// 핸들러 초기화를 위해, 각 서비스를 배열에 삽입
 		services = [...]service.Servicer{
-			netflix.Netflix{},
+			service.Netflix{},
 		}
 		// 동기화 작업을 위한 WaitGroup
 		wg sync.WaitGroup
