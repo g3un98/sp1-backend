@@ -12,10 +12,10 @@ import (
 
 // API 서버가 동작하는지 확인
 func helloWorld(w http.ResponseWriter, _ *http.Request) {
-	service.LogStdout.Println("[/] helloWorld")
+	service.LogInfo.Println("[/] helloWorld")
 	
     if _, err := fmt.Fprintln(w, "Hello API!"); err != nil {
-        service.LogStderr.Printf("An error has occurred while respond: %s\n", err)
+        service.LogErr.Printf("An error has occurred while respond: %s\n", err)
     }
 }
 
@@ -40,9 +40,9 @@ func handleRequests() {
 		go func(s service.Servicer) {
 			defer wg.Done()
 
-			service.LogStdout.Printf("Prepare %s APIs\n", s.GetName())
+			service.LogInfo.Printf("Prepare %s APIs\n", s.GetName())
 			s.Handler()
-			service.LogStdout.Printf("%s APIs are ready\n", s.GetName())
+			service.LogInfo.Printf("%s APIs are ready\n", s.GetName())
 		}(s)
 	}
 
@@ -51,11 +51,11 @@ func handleRequests() {
 
 	// localhost:8000으로 서버 시작
 	// 에러 발생 시, 로그 작성 및 프로그램 종료
-    service.LogStderr.Fatal(http.ListenAndServe(":8000", nil))
+    service.LogErr.Fatal(http.ListenAndServe(":8000", nil))
 }
 
 // API 서버 시작 로그를 남기고, 요청 핸들러 호출
 func main() {
-	service.LogStdout.Println("Start API server")
+	service.LogInfo.Println("Start API server")
 	handleRequests()
 }

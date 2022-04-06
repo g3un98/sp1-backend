@@ -8,9 +8,9 @@ import (
 )
 
 var (
-	// 접속 기록 저장을 위한 구조체 변수
-	LogStdout = log.New(os.Stdout, "", log.LstdFlags)
+	// 정보 저장을 위한 구조체 변수
+	LogInfo = log.New(os.Stdout, "", log.LstdFlags)
 
-	// 에러 내용 저장을 위한 구조체 변수
-	LogStderr = log.New(os.Stderr, "", log.LstdFlags)
+	// 에러 저장을 위한 구조체 변수
+	LogErr = log.New(os.Stderr, "", log.LstdFlags)
 )

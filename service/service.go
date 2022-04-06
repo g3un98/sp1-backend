@@ -15,7 +15,7 @@ func NewService(t string) Servicer {
 		return &Netflix{}
 	default:
 		// 정의되지 않은 서비스 입력 시, 에러 로그 작성 및 프로그램 종료
-		LogStderr.Fatalf(`An error has occurred while create new service: %s\n`, t)
+		LogErr.Fatalf(`An error has occurred while create new service: %s\n`, t)
 		return nil
 	}
 }

@@ -62,10 +62,10 @@ func (n Netflix) GetName() (name string) {
 
 // Netflix 파싱이 동작하는지 확인
 func (n *Netflix) Hello(w http.ResponseWriter, _ *http.Request) {
-	LogStdout.Println("[/netflix] Netflix.Hello")
+	LogInfo.Println("[/netflix] Netflix.Hello")
 
 	if _, err := fmt.Fprintln(w, "Hello Netflix!"); err != nil {
-		LogStderr.Printf("An error has occurred while respond: %s\n", err)
+		LogErr.Printf("An error has occurred while respond: %s\n", err)
 	}
 }
 
@@ -121,7 +121,7 @@ func (n *Netflix) Logout() (err error) {
 
 // Netflix 계정 정보 조회
 func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
-	LogStdout.Println("[/netflix/info] Netflix.Info")
+	LogInfo.Println("[/netflix/info] Netflix.Info")
 
 	// 요청-응답 처리 과정에서 사용할 변수
 	var (
@@ -132,7 +132,7 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 	// POST 메소드가 아닌 요청은 405 에러 반환
 	if r.Method != "POST" {
 		if err := Response(w, http.StatusMethodNotAllowed, resp); err != nil {
-			LogStderr.Println(err)
+			LogErr.Println(err)
 		}
 		return
 	}
@@ -162,27 +162,27 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err = json.NewDecoder(r.Body).Decode(&account); err != nil {
-		LogStderr.Printf("An error has occurred while decode json from request: %s\n", err)
+		LogErr.Printf("An error has occurred while decode json from request: %s\n", err)
 		if err = Response(w, http.StatusInternalServerError, resp); err != nil {
-			LogStderr.Println(err)
+			LogErr.Println(err)
 		}
 		return
 	}
 	if len(account.Id) < 5 || len(account.Id) > 50 || len(account.Pw) < 4 || len(account.Pw) > 60 {
 		if err = Response(w, http.StatusBadRequest, resp); err != nil {
-			LogStderr.Println(err)
+			LogErr.Println(err)
 		}
 		return
 	}
 
 	// 로그인
 	if msg, err := n.Login(account); err != nil {
-		LogStderr.Println(err)
+		LogErr.Println(err)
 		return
 	} else if msg != "" {
 		resp["message"] = msg
 		if err = Response(w, http.StatusUnauthorized, resp); err != nil {
-			LogStderr.Println(err)
+			LogErr.Println(err)
 		}
 		return
 	}
@@ -190,7 +190,7 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 	// 로그아웃
 	defer func() {
 		if err := n.Logout(); err != nil {
-			LogStderr.Println(err)
+			LogErr.Println(err)
 		}
 		return
 	}()
@@ -210,18 +210,18 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		chromedp.WaitVisible(SEL_INFO_MEMBERSHIP),
 		chromedp.Text(SEL_INFO_MEMBERSHIP, &rawMembership, chromedp.NodeVisible),
 	); err != nil {
-		LogStderr.Printf("An error has occurred while load account infomation: %s\n", err)
+		LogErr.Printf("An error has occurred while load account infomation: %s\n", err)
 		if err = Response(w, http.StatusInternalServerError, resp); err != nil {
-			LogStderr.Println(err)
+			LogErr.Println(err)
 		}
 		return
 	}
 
 	payment = strings.Split(rawPayment, "\n")
 	if _, err = fmt.Sscanf(rawDate, "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy); err != nil {
-		LogStderr.Printf("An error has occurred while parse from rawDate: %s\n", err)
+		LogErr.Printf("An error has occurred while parse from rawDate: %s\n", err)
 		if err = Response(w, http.StatusInternalServerError, resp); err != nil {
-			LogStderr.Println(err)
+			LogErr.Println(err)
 		}
 		return
 	}
@@ -245,16 +245,16 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		account.Membership.Type = MEMBERSHIP_PREMIUM
 		account.Membership.Cost = MEMBERSHIP_COST_PREMIUM
 	default:
-		LogStderr.Printf("An error has occurred while parse membership infomation: %s\n", err)
+		LogErr.Printf("An error has occurred while parse membership infomation: %s\n", err)
 		if err = Response(w, http.StatusInternalServerError, resp); err != nil {
-			LogStderr.Println(err)
+			LogErr.Println(err)
 		}
 		return
 	}
 
 	resp["account"] = account
 	if err = Response(w, http.StatusOK, resp); err != nil {
-		LogStderr.Println(err)
+		LogErr.Println(err)
 	}
 }
 
