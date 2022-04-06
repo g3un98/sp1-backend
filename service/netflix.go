@@ -132,10 +132,12 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		resp["message"] = http.StatusText(http.StatusMethodNotAllowed)
 		jsonResp, err = json.Marshal(resp)
 		if err != nil {
-			log.Fatalf(`An error has occurred while JSON Marshal: %s\n`, err)
+			LogStderr.Printf(`An error has occurred while JSON Marshal: %s\n`, err)
+			return
 		}
 		if _, err = w.Write(jsonResp); err != nil {
-			log.Fatalf("An error has occurred while respond: %s\n", err)
+			LogStderr.Printf("An error has occurred while respond: %s\n", err)
+			return
 		}
 		return
 	}
@@ -168,17 +170,20 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 
 	// 로그인
 	if msg, err := n.Login(account); err != nil {
-		log.Fatalf(`An error has occurred while login: %s\n`, err)
+		LogStderr.Printf(`An error has occurred while login: %s\n`, err)
+		return
 	} else if msg != "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("Content-type", "application/json")
 		resp["message"] = msg
 		jsonResp, err = json.Marshal(resp)
 		if err != nil {
-			log.Fatalf(`An error has occurred while JSON Marshal: %s\n`, err)
+			LogStderr.Printf(`An error has occurred while JSON Marshal: %s\n`, err)
+			return
 		}
 		if _, err = w.Write(jsonResp); err != nil {
-			log.Fatalf("An error has occurred while respond: %s\n", err)
+			LogStderr.Printf("An error has occurred while respond: %s\n", err)
+			return
 		}
 		return
 	}
@@ -186,7 +191,8 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 	// 로그아웃
 	defer func() {
 		if err := n.Logout(); err != nil {
-			log.Fatalf(`An error has occurred while logout: %s\n`, err)
+			LogStderr.Printf(`An error has occurred while logout: %s\n`, err)
+			return
 		}
 	}()
 
@@ -205,7 +211,8 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		chromedp.WaitVisible(SEL_INFO_MEMBERSHIP),
 		chromedp.Text(SEL_INFO_MEMBERSHIP, &rawMembership, chromedp.NodeVisible),
 	); err != nil {
-		log.Fatalf(`An error has occurred while load account infomation: %s\n`, err)
+		LogStderr.Printf(`An error has occurred while load account infomation: %s\n`, err)
+		return
 	}
 
 	payment = strings.Split(rawPayment, "\n")
@@ -230,7 +237,8 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		account.Membership.Type = MEMBERSHIP_PREMIUM
 		account.Membership.Cost = MEMBERSHIP_COST_PREMIUM
 	default:
-		log.Fatalf(`An error has occurred while parse membership infomation: %s\n`, err)
+		LogStderr.Printf(`An error has occurred while parse membership infomation: %s\n`, err)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -239,10 +247,12 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 	resp["account"] = account
 	jsonResp, err = json.Marshal(resp)
 	if err != nil {
-		log.Fatalf(`An error has occurred while JSON Marshal: %s\n`, err)
+		LogStderr.Printf(`An error has occurred while JSON Marshal: %s\n`, err)
+		return
 	}
 	if _, err = w.Write(jsonResp); err != nil {
-		log.Fatalf("An error has occurred while respond: %s\n", err)
+		LogStderr.Printf("An error has occurred while respond: %s\n", err)
+		return
 	}
 }
 

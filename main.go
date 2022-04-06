@@ -4,7 +4,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"sync"
 
@@ -13,7 +12,7 @@ import (
 
 // API 서버가 동작하는지 확인
 func helloWorld(w http.ResponseWriter, _ *http.Request) {
-	log.Println("[/] helloWorld")
+	service.LogStdout.Println("[/] helloWorld")
 	fmt.Fprintln(w, "Hello API!")
 }
 
@@ -38,9 +37,9 @@ func handleRequests() {
 		go func(s service.Servicer) {
 			defer wg.Done()
 
-			log.Printf("Prepare %s APIs\n", s.GetName())
+			service.LogStdout.Printf("Prepare %s APIs\n", s.GetName())
 			s.Handler()
-			log.Printf("%s APIs are ready\n", s.GetName())
+			service.LogStdout.Printf("%s APIs are ready\n", s.GetName())
 		}(s)
 	}
 
@@ -49,11 +48,11 @@ func handleRequests() {
 
 	// localhost:8000으로 서버 시작
 	// 에러 발생 시, 로그 작성 및 프로그램 종료
-	log.Fatal(http.ListenAndServe(":8000", nil))
+    service.LogStderr.Fatal(http.ListenAndServe(":8000", nil))
 }
 
 // API 서버 시작 로그를 남기고, 요청 핸들러 호출
 func main() {
-	log.Println("Start API server")
+	service.LogStdout.Println("Start API server")
 	handleRequests()
 }
