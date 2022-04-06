@@ -13,7 +13,10 @@ import (
 // API 서버가 동작하는지 확인
 func helloWorld(w http.ResponseWriter, _ *http.Request) {
 	service.LogStdout.Println("[/] helloWorld")
-	fmt.Fprintln(w, "Hello API!")
+	
+    if _, err := fmt.Fprintln(w, "Hello API!"); err != nil {
+        service.LogStderr.Printf("An error has occurred while respond: %s\n", err)
+    }
 }
 
 // localhost:8000으로 API 서버 시작

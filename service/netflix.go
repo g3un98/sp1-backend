@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -63,8 +62,11 @@ func (n Netflix) GetName() (name string) {
 
 // Netflix 파싱이 동작하는지 확인
 func (n *Netflix) Hello(w http.ResponseWriter, _ *http.Request) {
-	log.Println("[/netflix] Netflix.Hello")
-	fmt.Fprintln(w, "Hello Netflix!")
+	LogStdout.Println("[/netflix] Netflix.Hello")
+
+	if _, err := fmt.Fprintln(w, "Hello Netflix!"); err != nil {
+		LogStderr.Printf("An error has occurred while respond: %s\n", err)
+	}
 }
 
 // Netflix 웹사이트 로그인
@@ -90,7 +92,7 @@ func (n *Netflix) Login(a Account) (msg string, err error) {
 		chromedp.Sleep(1*time.Second),
 		chromedp.Location(&url),
 	); err != nil {
-		return
+		return "", fmt.Errorf("An error has occurred while login to Netflix: %s\n", err)
 	}
 
 	if url == URI_LOGIN {
@@ -98,46 +100,39 @@ func (n *Netflix) Login(a Account) (msg string, err error) {
 			n.ctx,
 			chromedp.Text(SEL_LOGIN_ERR, &msg, chromedp.NodeVisible),
 		); err != nil {
-			return
+			return "", fmt.Errorf("An error has occurred while load error message from web: %s", err)
 		}
-		return
+		return msg, nil
 	}
 	return
 }
 
 // Netflix 웹사이트 로그아웃
 func (n *Netflix) Logout() (err error) {
-	return chromedp.Run(
+	if err = chromedp.Run(
 		n.ctx,
 
 		chromedp.Navigate(URI_LOGOUT),
-	)
+	); err != nil {
+		return fmt.Errorf("An error has occurred while logout to Netflix: %s", err)
+	}
+	return
 }
 
 // Netflix 계정 정보 조회
 func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
-	log.Println("[/netflix/info] Netflix.Info")
+	LogStdout.Println("[/netflix/info] Netflix.Info")
 
 	// 요청-응답 처리 과정에서 사용할 변수
 	var (
-		resp     = make(map[string]interface{})
-		jsonResp []byte
-		err      error
+		resp = make(map[string]interface{})
+		err  error
 	)
 
 	// POST 메소드가 아닌 요청은 405 에러 반환
 	if r.Method != "POST" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Header().Set("Content-type", "application/json")
-		resp["message"] = http.StatusText(http.StatusMethodNotAllowed)
-		jsonResp, err = json.Marshal(resp)
-		if err != nil {
-			LogStderr.Printf(`An error has occurred while JSON Marshal: %s\n`, err)
-			return
-		}
-		if _, err = w.Write(jsonResp); err != nil {
-			LogStderr.Printf("An error has occurred while respond: %s\n", err)
-			return
+		if err := Response(w, http.StatusMethodNotAllowed, resp); err != nil {
+			LogStderr.Println(err)
 		}
 		return
 	}
@@ -166,24 +161,28 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		dummy string
 	)
 
-	json.NewDecoder(r.Body).Decode(&account)
+	if err = json.NewDecoder(r.Body).Decode(&account); err != nil {
+		LogStderr.Printf("An error has occurred while decode json from request: %s\n", err)
+		if err = Response(w, http.StatusInternalServerError, resp); err != nil {
+			LogStderr.Println(err)
+		}
+		return
+	}
+	if len(account.Id) < 5 || len(account.Id) > 50 || len(account.Pw) < 4 || len(account.Pw) > 60 {
+		if err = Response(w, http.StatusBadRequest, resp); err != nil {
+			LogStderr.Println(err)
+		}
+		return
+	}
 
 	// 로그인
 	if msg, err := n.Login(account); err != nil {
-		LogStderr.Printf(`An error has occurred while login: %s\n`, err)
+		LogStderr.Println(err)
 		return
 	} else if msg != "" {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Header().Set("Content-type", "application/json")
 		resp["message"] = msg
-		jsonResp, err = json.Marshal(resp)
-		if err != nil {
-			LogStderr.Printf(`An error has occurred while JSON Marshal: %s\n`, err)
-			return
-		}
-		if _, err = w.Write(jsonResp); err != nil {
-			LogStderr.Printf("An error has occurred while respond: %s\n", err)
-			return
+		if err = Response(w, http.StatusUnauthorized, resp); err != nil {
+			LogStderr.Println(err)
 		}
 		return
 	}
@@ -191,9 +190,9 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 	// 로그아웃
 	defer func() {
 		if err := n.Logout(); err != nil {
-			LogStderr.Printf(`An error has occurred while logout: %s\n`, err)
-			return
+			LogStderr.Println(err)
 		}
+		return
 	}()
 
 	// 계정 정보 조회
@@ -211,12 +210,21 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		chromedp.WaitVisible(SEL_INFO_MEMBERSHIP),
 		chromedp.Text(SEL_INFO_MEMBERSHIP, &rawMembership, chromedp.NodeVisible),
 	); err != nil {
-		LogStderr.Printf(`An error has occurred while load account infomation: %s\n`, err)
+		LogStderr.Printf("An error has occurred while load account infomation: %s\n", err)
+		if err = Response(w, http.StatusInternalServerError, resp); err != nil {
+			LogStderr.Println(err)
+		}
 		return
 	}
 
 	payment = strings.Split(rawPayment, "\n")
-	fmt.Sscanf(rawDate, "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy)
+	if _, err = fmt.Sscanf(rawDate, "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy); err != nil {
+		LogStderr.Printf("An error has occurred while parse from rawDate: %s\n", err)
+		if err = Response(w, http.StatusInternalServerError, resp); err != nil {
+			LogStderr.Println(err)
+		}
+		return
+	}
 
 	account.Payment.Type = payment[0]
 	account.Payment.Detail = payment[1]
@@ -237,22 +245,16 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		account.Membership.Type = MEMBERSHIP_PREMIUM
 		account.Membership.Cost = MEMBERSHIP_COST_PREMIUM
 	default:
-		LogStderr.Printf(`An error has occurred while parse membership infomation: %s\n`, err)
+		LogStderr.Printf("An error has occurred while parse membership infomation: %s\n", err)
+		if err = Response(w, http.StatusInternalServerError, resp); err != nil {
+			LogStderr.Println(err)
+		}
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-type", "application/json")
-	resp["message"] = http.StatusText(http.StatusOK)
 	resp["account"] = account
-	jsonResp, err = json.Marshal(resp)
-	if err != nil {
-		LogStderr.Printf(`An error has occurred while JSON Marshal: %s\n`, err)
-		return
-	}
-	if _, err = w.Write(jsonResp); err != nil {
-		LogStderr.Printf("An error has occurred while respond: %s\n", err)
-		return
+	if err = Response(w, http.StatusOK, resp); err != nil {
+		LogStderr.Println(err)
 	}
 }
 
