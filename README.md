@@ -16,7 +16,7 @@ github.com/chromedp/chromedp v0.8.0
 $ go mod tidy
 
 // Start server
-$ go run main.go
+$ go run main.go > info.log 2> error.log
 ```
 
 ## Support services
