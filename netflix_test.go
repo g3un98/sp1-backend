@@ -32,7 +32,7 @@ type Response struct {
 }
 
 var testSets = []TestSet{
-    // POST를 제외한 메소드를 요청할 시 상태 코드 405 반환
+    // POST를 제외한 메소드 요청 시, 상태 코드 405 반환
     {
         Request{http.MethodGet, "/netflix/info", nil},
         Response{405, "405 Method Not Allowed"},
@@ -46,7 +46,7 @@ var testSets = []TestSet{
         Response{405, "405 Method Not Allowed"},
     },
 
-    // id 혹은 pw가 없을 시 상태 코드 400 반환
+    // id 혹은 pw를 입력하지 않았을 시, 상태 코드 400 반환
     {
         Request{http.MethodPost, "/netflix/info", strings.NewReader(`{}`)},
         Response{400, "400 Bad Request"},
@@ -60,7 +60,7 @@ var testSets = []TestSet{
         Response{400, "400 Bad Request"},
     },
 
-    // id 혹은 pw의 길이 검사 실패 시 상태 코드 400 반환
+    // id 혹은 pw의 길이 검사 실패 시, 상태 코드 400 반환
     // 5 <= id <= 50
     // 4 <= pw <= 60
     {
@@ -80,7 +80,8 @@ var testSets = []TestSet{
         Response{400, "400 Bad Request"},
     },
 
-    // id 혹은 pw가 틀릴 시, 넷플릭스 사이트 오류 발생 시 상태 코드 401 반환
+    // id 혹은 pw가 틀릴 시,
+    // 넷플릭스 사이트 오류 발생 시, 상태 코드 401 반환
     {
         Request{http.MethodPost, "/netflix/info", strings.NewReader(`{ "id": "jujujujusttetetetest@gmail.com", "pw": "1234" }`)},
         Response{401, "401 Unauthorized"},
@@ -90,7 +91,7 @@ var testSets = []TestSet{
         Response{401, "401 Unauthorized"},
     },
 
-    // id와 pw가 맞을 시 상태 코드 200 반환
+    // id와 pw가 맞을 시, 상태 코드 200 반환
     {
         Request{http.MethodPost, "/netflix/info", strings.NewReader(`{ "id": "jujujujusttetetetest@gmail.com", "pw": "jujujujusttetetetest1!" }`)},
         Response{200, "200 OK"},
@@ -107,7 +108,7 @@ func TestInfo(t *testing.T) {
 
         if data != tt.res {
             // 넷플릭스 사이트 에러 예외 처리
-            // 에러 발생 시 5분 정도 기다린 후 다시 테스트
+            // 에러 발생 시, 5분 정도 기다린 후 다시 테스트
             msg, _ := ioutil.ReadAll(res.Body)
             if string(msg) == `{"message":"현재 기술적인 문제가 있어 수정 작업 중에 있습니다. 잠시 후 다시 시도해 주시기 바랍니다."}` {
                 t.Errorf("netflix.com: We are having technical difficulties and are actively working on a fix. Please try again in a few minutes.")
