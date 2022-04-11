@@ -169,7 +169,7 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-    // id와 pw 길이 검사
+	// id와 pw 길이 검사
 	if len(account.Id) < 5 || len(account.Id) > 50 || len(account.Pw) < 4 || len(account.Pw) > 60 {
 		if err = Response(w, http.StatusBadRequest, resp); err != nil {
 			LogErr.Println(err)
