@@ -15,6 +15,9 @@ github.com/chromedp/chromedp v0.8.0
 // Install dependencies
 $ go mod tidy
 
+// Test APIs
+$ go test
+
 // Start server
 $ go run main.go > info.log 2> error.log
 ```

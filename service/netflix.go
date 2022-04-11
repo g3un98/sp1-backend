@@ -30,9 +30,8 @@ const (
 	SEL_LOGIN_ERR = `div[data-uia="error-message-container"]`
 
 	// 계정 정보 조회
-	SEL_INFO_PAYMENT_TYPE = `div[data-uia="wallet-mop"]`
-	SEL_INFO_PAYMENT_NEXT = `div[data-uia="nextBillingDate-item"]`
-	SEL_INFO_MEMBERSHIP   = `div[data-uia="plan-section"] > section`
+	SEL_INFO_PAYMENT    = `div[class="account-section-group payment-details -wide"]`
+	SEL_INFO_MEMBERSHIP = `div[data-uia="plan-section"] > section`
 )
 
 // Netflix 멤버십 상수
@@ -140,7 +139,7 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 	// 웹사이트 접속을 위한 컨텐스트 선언 및 1분 타임아웃 설정
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
-		//chromedp.WithDebugf(log.Printf),
+		//chromedp.WithDebugf(LogInfo.Printf),
 	)
 	defer cancel()
 	ctx, cancel = context.WithTimeout(ctx, 1*time.Minute)
@@ -168,6 +167,9 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	defer r.Body.Close()
+
+    // id와 pw 길이 검사
 	if len(account.Id) < 5 || len(account.Id) > 50 || len(account.Pw) < 4 || len(account.Pw) > 60 {
 		if err = Response(w, http.StatusBadRequest, resp); err != nil {
 			LogErr.Println(err)
@@ -201,11 +203,8 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 
 		chromedp.Navigate(URI_INFO),
 
-		chromedp.WaitVisible(SEL_INFO_PAYMENT_TYPE),
-		chromedp.Text(SEL_INFO_PAYMENT_TYPE, &rawPayment, chromedp.NodeVisible),
-
-		chromedp.WaitVisible(SEL_INFO_PAYMENT_NEXT),
-		chromedp.Text(SEL_INFO_PAYMENT_NEXT, &rawDate, chromedp.NodeVisible),
+		chromedp.WaitVisible(SEL_INFO_PAYMENT),
+		chromedp.Text(SEL_INFO_PAYMENT, &rawPayment, chromedp.NodeVisible),
 
 		chromedp.WaitVisible(SEL_INFO_MEMBERSHIP),
 		chromedp.Text(SEL_INFO_MEMBERSHIP, &rawMembership, chromedp.NodeVisible),
@@ -217,18 +216,24 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payment = strings.Split(rawPayment, "\n")
-	if _, err = fmt.Sscanf(rawDate, "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy); err != nil {
-		LogErr.Printf("An error has occurred while parse from rawDate: %s\n", err)
-		if err = Response(w, http.StatusInternalServerError, resp); err != nil {
-			LogErr.Println(err)
+	if rawPayment == "결제 정보가 없습니다" {
+		account.Payment = Payment{}
+	} else {
+		payment = strings.Split(rawPayment, "\n")
+		if _, err = fmt.Sscanf(rawDate, "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy); err != nil {
+			LogErr.Printf("An error has occurred while parse from rawDate: %s\n", err)
+			if err = Response(w, http.StatusInternalServerError, resp); err != nil {
+				LogErr.Println(err)
+			}
+			return
 		}
-		return
-	}
 
-	account.Payment.Type = payment[0]
-	account.Payment.Detail = payment[1]
-	account.Payment.Next = fmt.Sprintf("%d-%d-%d", year, month, day)
+		account.Payment = Payment{
+			Type:   payment[0],
+			Detail: payment[1],
+			Next:   fmt.Sprintf("%d-%d-%d", year, month, day),
+		}
+	}
 
 	// 멤버십 타입에 따라 동작
 	switch strings.Split(rawMembership, "\n")[0] {
