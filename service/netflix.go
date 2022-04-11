@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -31,9 +30,8 @@ const (
 	SEL_LOGIN_ERR = `div[data-uia="error-message-container"]`
 
 	// 계정 정보 조회
-	SEL_INFO_PAYMENT_TYPE = `div[data-uia="wallet-mop"]`
-	SEL_INFO_PAYMENT_NEXT = `div[data-uia="nextBillingDate-item"]`
-	SEL_INFO_MEMBERSHIP   = `div[data-uia="plan-section"] > section`
+	SEL_INFO_PAYMENT    = `div[class="account-section-group payment-details -wide"]`
+	SEL_INFO_MEMBERSHIP = `div[data-uia="plan-section"] > section`
 )
 
 // Netflix 멤버십 상수
@@ -63,8 +61,11 @@ func (n Netflix) GetName() (name string) {
 
 // Netflix 파싱이 동작하는지 확인
 func (n *Netflix) Hello(w http.ResponseWriter, _ *http.Request) {
-	log.Println("[/netflix] Netflix.Hello")
-	fmt.Fprintln(w, "Hello Netflix!")
+	LogInfo.Println("[/netflix] Netflix.Hello")
+
+	if _, err := fmt.Fprintln(w, "Hello Netflix!"); err != nil {
+		LogErr.Printf("An error has occurred while respond: %s\n", err)
+	}
 }
 
 // Netflix 웹사이트 로그인
@@ -90,7 +91,7 @@ func (n *Netflix) Login(a Account) (msg string, err error) {
 		chromedp.Sleep(1*time.Second),
 		chromedp.Location(&url),
 	); err != nil {
-		return
+		return "", fmt.Errorf("An error has occurred while login to Netflix: %s\n", err)
 	}
 
 	if url == URI_LOGIN {
@@ -98,44 +99,39 @@ func (n *Netflix) Login(a Account) (msg string, err error) {
 			n.ctx,
 			chromedp.Text(SEL_LOGIN_ERR, &msg, chromedp.NodeVisible),
 		); err != nil {
-			return
+			return "", fmt.Errorf("An error has occurred while load error message from web: %s", err)
 		}
-		return
+		return msg, nil
 	}
 	return
 }
 
 // Netflix 웹사이트 로그아웃
 func (n *Netflix) Logout() (err error) {
-	return chromedp.Run(
+	if err = chromedp.Run(
 		n.ctx,
 
 		chromedp.Navigate(URI_LOGOUT),
-	)
+	); err != nil {
+		return fmt.Errorf("An error has occurred while logout to Netflix: %s", err)
+	}
+	return
 }
 
 // Netflix 계정 정보 조회
 func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
-	log.Println("[/netflix/info] Netflix.Info")
+	LogInfo.Println("[/netflix/info] Netflix.Info")
 
 	// 요청-응답 처리 과정에서 사용할 변수
 	var (
-		resp     = make(map[string]interface{})
-		jsonResp []byte
-		err      error
+		resp = make(map[string]interface{})
+		err  error
 	)
 
 	// POST 메소드가 아닌 요청은 405 에러 반환
 	if r.Method != "POST" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Header().Set("Content-type", "application/json")
-		resp["message"] = http.StatusText(http.StatusMethodNotAllowed)
-		jsonResp, err = json.Marshal(resp)
-		if err != nil {
-			log.Fatalf(`An error has occurred while JSON Marshal: %s\n`, err)
-		}
-		if _, err = w.Write(jsonResp); err != nil {
-			log.Fatalf("An error has occurred while response: %s\n", err)
+		if err := Response(w, http.StatusMethodNotAllowed, resp); err != nil {
+			LogErr.Println(err)
 		}
 		return
 	}
@@ -143,7 +139,7 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 	// 웹사이트 접속을 위한 컨텐스트 선언 및 1분 타임아웃 설정
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
-		//chromedp.WithDebugf(log.Printf),
+		//chromedp.WithDebugf(LogInfo.Printf),
 	)
 	defer cancel()
 	ctx, cancel = context.WithTimeout(ctx, 1*time.Minute)
@@ -164,21 +160,31 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		dummy string
 	)
 
-	json.NewDecoder(r.Body).Decode(&account)
+	if err = json.NewDecoder(r.Body).Decode(&account); err != nil {
+		LogErr.Printf("An error has occurred while decode json from request: %s\n", err)
+		if err = Response(w, http.StatusInternalServerError, resp); err != nil {
+			LogErr.Println(err)
+		}
+		return
+	}
+	defer r.Body.Close()
+
+    // id와 pw 길이 검사
+	if len(account.Id) < 5 || len(account.Id) > 50 || len(account.Pw) < 4 || len(account.Pw) > 60 {
+		if err = Response(w, http.StatusBadRequest, resp); err != nil {
+			LogErr.Println(err)
+		}
+		return
+	}
 
 	// 로그인
 	if msg, err := n.Login(account); err != nil {
-		log.Fatalf(`An error has occurred while login: %s\n`, err)
+		LogErr.Println(err)
+		return
 	} else if msg != "" {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Header().Set("Content-type", "application/json")
 		resp["message"] = msg
-		jsonResp, err = json.Marshal(resp)
-		if err != nil {
-			log.Fatalf(`An error has occurred while JSON Marshal: %s\n`, err)
-		}
-		if _, err = w.Write(jsonResp); err != nil {
-			log.Fatalf("An error has occurred while response: %s\n", err)
+		if err = Response(w, http.StatusUnauthorized, resp); err != nil {
+			LogErr.Println(err)
 		}
 		return
 	}
@@ -186,8 +192,9 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 	// 로그아웃
 	defer func() {
 		if err := n.Logout(); err != nil {
-			log.Fatalf(`An error has occurred while logout: %s\n`, err)
+			LogErr.Println(err)
 		}
+		return
 	}()
 
 	// 계정 정보 조회
@@ -196,24 +203,37 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 
 		chromedp.Navigate(URI_INFO),
 
-		chromedp.WaitVisible(SEL_INFO_PAYMENT_TYPE),
-		chromedp.Text(SEL_INFO_PAYMENT_TYPE, &rawPayment, chromedp.NodeVisible),
-
-		chromedp.WaitVisible(SEL_INFO_PAYMENT_NEXT),
-		chromedp.Text(SEL_INFO_PAYMENT_NEXT, &rawDate, chromedp.NodeVisible),
+		chromedp.WaitVisible(SEL_INFO_PAYMENT),
+		chromedp.Text(SEL_INFO_PAYMENT, &rawPayment, chromedp.NodeVisible),
 
 		chromedp.WaitVisible(SEL_INFO_MEMBERSHIP),
 		chromedp.Text(SEL_INFO_MEMBERSHIP, &rawMembership, chromedp.NodeVisible),
 	); err != nil {
-		log.Fatalf(`An error has occurred while load account infomation: %s\n`, err)
+		LogErr.Printf("An error has occurred while load account infomation: %s\n", err)
+		if err = Response(w, http.StatusInternalServerError, resp); err != nil {
+			LogErr.Println(err)
+		}
+		return
 	}
 
-	payment = strings.Split(rawPayment, "\n")
-	fmt.Sscanf(rawDate, "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy)
+	if rawPayment == "결제 정보가 없습니다" {
+		account.Payment = Payment{}
+	} else {
+		payment = strings.Split(rawPayment, "\n")
+		if _, err = fmt.Sscanf(rawDate, "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy); err != nil {
+			LogErr.Printf("An error has occurred while parse from rawDate: %s\n", err)
+			if err = Response(w, http.StatusInternalServerError, resp); err != nil {
+				LogErr.Println(err)
+			}
+			return
+		}
 
-	account.Payment.Type = payment[0]
-	account.Payment.Detail = payment[1]
-	account.Payment.Next = fmt.Sprintf("%d-%d-%d", year, month, day)
+		account.Payment = Payment{
+			Type:   payment[0],
+			Detail: payment[1],
+			Next:   fmt.Sprintf("%d-%d-%d", year, month, day),
+		}
+	}
 
 	// 멤버십 타입에 따라 동작
 	switch strings.Split(rawMembership, "\n")[0] {
@@ -230,19 +250,16 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		account.Membership.Type = MEMBERSHIP_PREMIUM
 		account.Membership.Cost = MEMBERSHIP_COST_PREMIUM
 	default:
-		log.Fatalf(`An error has occurred while parse membership infomation: %s\n`, err)
+		LogErr.Printf("An error has occurred while parse membership infomation: %s\n", err)
+		if err = Response(w, http.StatusInternalServerError, resp); err != nil {
+			LogErr.Println(err)
+		}
+		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-type", "application/json")
-	resp["message"] = http.StatusText(http.StatusOK)
 	resp["account"] = account
-	jsonResp, err = json.Marshal(resp)
-	if err != nil {
-		log.Fatalf(`An error has occurred while JSON Marshal: %s\n`, err)
-	}
-	if _, err = w.Write(jsonResp); err != nil {
-		log.Fatalf("An error has occurred while response: %s\n", err)
+	if err = Response(w, http.StatusOK, resp); err != nil {
+		LogErr.Println(err)
 	}
 }
 

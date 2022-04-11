@@ -4,7 +4,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"sync"
 
@@ -13,8 +12,11 @@ import (
 
 // API 서버가 동작하는지 확인
 func helloWorld(w http.ResponseWriter, _ *http.Request) {
-	log.Println("[/] helloWorld")
-	fmt.Fprintln(w, "Hello API!")
+	service.LogInfo.Println("[/] helloWorld")
+	
+    if _, err := fmt.Fprintln(w, "Hello API!"); err != nil {
+        service.LogErr.Printf("An error has occurred while respond: %s\n", err)
+    }
 }
 
 // localhost:8000으로 API 서버 시작
@@ -23,7 +25,7 @@ func handleRequests() {
 	var (
 		// 핸들러 초기화를 위해, 각 서비스를 배열에 삽입
 		services = [...]service.Servicer{
-			service.Netflix{},
+            service.NewService("Netflix"),
 		}
 		// 동기화 작업을 위한 WaitGroup
 		wg sync.WaitGroup
@@ -38,9 +40,9 @@ func handleRequests() {
 		go func(s service.Servicer) {
 			defer wg.Done()
 
-			log.Printf("Prepare %s APIs\n", s.GetName())
+			service.LogInfo.Printf("Prepare %s APIs\n", s.GetName())
 			s.Handler()
-			log.Printf("%s APIs are ready\n", s.GetName())
+			service.LogInfo.Printf("%s APIs are ready\n", s.GetName())
 		}(s)
 	}
 
@@ -49,11 +51,11 @@ func handleRequests() {
 
 	// localhost:8000으로 서버 시작
 	// 에러 발생 시, 로그 작성 및 프로그램 종료
-	log.Fatal(http.ListenAndServe(":8000", nil))
+    service.LogErr.Fatal(http.ListenAndServe(":8000", nil))
 }
 
 // API 서버 시작 로그를 남기고, 요청 핸들러 호출
 func main() {
-	log.Println("Start API server")
+	service.LogInfo.Println("Start API server")
 	handleRequests()
 }
