@@ -1,6 +1,6 @@
 # SP1 Backend ⚡️
 
-An API server in Go.
+An API server in Go. ([docs](docs/README.md))
 
 ## Enviroments
 
