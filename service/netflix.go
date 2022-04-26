@@ -151,7 +151,7 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		account Account
 
 		// 가공 전 데이터를 담을 변수
-		rawPayment, rawDate, rawMembership string
+		rawPayment, rawMembership string
 
 		// 가공 된 데이터를 담을 변수
 		payment          []string
@@ -220,8 +220,8 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 		account.Payment = Payment{}
 	} else {
 		payment = strings.Split(rawPayment, "\n")
-		if _, err = fmt.Sscanf(rawDate, "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy); err != nil {
-			LogErr.Printf("An error has occurred while parse from rawDate: %s\n", err)
+		if _, err = fmt.Sscanf(payment[2], "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy); err != nil {
+			LogErr.Printf("An error has occurred while parse from payment[2]: %s\n", err)
 			if err = Response(w, http.StatusInternalServerError, resp); err != nil {
 				LogErr.Println(err)
 			}
