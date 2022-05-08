@@ -16,6 +16,7 @@ func handleRequests() {
 		// 핸들러 초기화를 위해, 각 서비스를 배열에 삽입
 		services = [...]service.Servicer{
             service.NewService("Netflix"),
+            service.NewService("Wavve"),
 		}
 		// 동기화 작업을 위한 WaitGroup
 		wg sync.WaitGroup
