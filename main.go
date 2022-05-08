@@ -3,21 +3,11 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"sync"
 
 	"github.com/g3un/sp1-backend/service"
 )
-
-// API 서버가 동작하는지 확인
-func helloWorld(w http.ResponseWriter, _ *http.Request) {
-	service.LogInfo.Println("[/] helloWorld")
-	
-    if _, err := fmt.Fprintln(w, "Hello API!"); err != nil {
-        service.LogErr.Printf("An error has occurred while respond: %s\n", err)
-    }
-}
 
 // localhost:8000으로 API 서버 시작
 // 각 서비스 핸들러 호출
@@ -30,9 +20,6 @@ func handleRequests() {
 		// 동기화 작업을 위한 WaitGroup
 		wg sync.WaitGroup
 	)
-
-	// "/" 경로와 helloWorld 함수를 연결
-	http.HandleFunc("/", helloWorld)
 
 	// 배열 속 각 서비스의 핸들러 호출
 	for _, s := range services {
