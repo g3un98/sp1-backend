@@ -2,7 +2,7 @@
 FROM alpine:latest as linux
 
 RUN apk add git &&\
-    git clone https://github.com/g3un/sp1-backend.git /root/src/
+    git clone --depth 1 --single-branch https://github.com/g3un/sp1-backend.git /root/src/
 
 # Build API server
 FROM golang:latest as build
