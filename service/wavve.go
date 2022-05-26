@@ -194,8 +194,8 @@ func (wv *Wavve) Info(w http.ResponseWriter, r *http.Request) {
 
 	if dummy == "이용권 결제 내역이 없어요." {
 		account.Payment = Payment{}
-		account.Membership.Type = WAVVE_MEMBERSHIP_TYPE_NO
-		account.Membership.Cost = WAVVE_MEMBERSHIP_COST_NO
+		account.Membership.Type = MEMBERSHIP_WAVVE_TYPE_NO
+		account.Membership.Cost = MEMBERSHIP_WAVVE_COST_NO
 
 		resp["account"] = account
 		if err = Response(w, http.StatusOK, resp); err != nil {
@@ -242,17 +242,17 @@ func (wv *Wavve) Info(w http.ResponseWriter, r *http.Request) {
 
 	switch rawMembershipType {
 	case "Basic":
-		account.Membership.Type = WAVVE_MEMBERSHIP_TYPE_BASIC
+		account.Membership.Type = MEMBERSHIP_WAVVE_TYPE_BASIC
 	case "Standard":
-		account.Membership.Type = WAVVE_MEMBERSHIP_TYPE_STANDARD
+		account.Membership.Type = MEMBERSHIP_WAVVE_TYPE_STANDARD
 	case "Premium":
-		account.Membership.Type = WAVVE_MEMBERSHIP_TYPE_PREMIUM
+		account.Membership.Type = MEMBERSHIP_WAVVE_TYPE_PREMIUM
 	case "Basic X FLO 무제한":
-		account.Membership.Type = WAVVE_MEMBERSHIP_TYPE_FLO
+		account.Membership.Type = MEMBERSHIP_WAVVE_TYPE_FLO
 	case "Basic X Bugs 듣기":
-		account.Membership.Type = WAVVE_MEMBERSHIP_TYPE_BUGS
+		account.Membership.Type = MEMBERSHIP_WAVVE_TYPE_BUGS
 	case "Basic X KB 나라사랑카드":
-		account.Membership.Type = WAVVE_MEMBERSHIP_TYPE_KB
+		account.Membership.Type = MEMBERSHIP_WAVVE_TYPE_KB
 	}
 
 	resp["account"] = account

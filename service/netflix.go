@@ -215,17 +215,17 @@ func (n *Netflix) Info(w http.ResponseWriter, r *http.Request) {
 	// 멤버십 타입에 따라 동작
 	switch strings.Split(rawMembership, "\n")[0] {
 	case "스트리밍 멤버십에 가입하지 않으셨습니다.":
-		account.Membership.Type = NETFLIX_MEMBERSHIP_TYPE_NO
-		account.Membership.Cost = NETFLIX_MEMBERSHIP_COST_NO
+		account.Membership.Type = MEMBERSHIP_NETFLIX_TYPE_NO
+		account.Membership.Cost = MEMBERSHIP_NETFLIX_COST_NO
 	case "베이식":
-		account.Membership.Type = NETFLIX_MEMBERSHIP_TYPE_BASIC
-		account.Membership.Cost = NETFLIX_MEMBERSHIP_COST_BASIC
+		account.Membership.Type = MEMBERSHIP_NETFLIX_TYPE_BASIC
+		account.Membership.Cost = MEMBERSHIP_NETFLIX_COST_BASIC
 	case "스탠다드":
-		account.Membership.Type = NETFLIX_MEMBERSHIP_TYPE_STANDARD
-		account.Membership.Cost = NETFLIX_MEMBERSHIP_COST_STANDARD
+		account.Membership.Type = MEMBERSHIP_NETFLIX_TYPE_STANDARD
+		account.Membership.Cost = MEMBERSHIP_NETFLIX_COST_STANDARD
 	case "프리미엄":
-		account.Membership.Type = NETFLIX_MEMBERSHIP_TYPE_PREMIUM
-		account.Membership.Cost = NETFLIX_MEMBERSHIP_COST_PREMIUM
+		account.Membership.Type = MEMBERSHIP_NETFLIX_TYPE_PREMIUM
+		account.Membership.Cost = MEMBERSHIP_NETFLIX_COST_PREMIUM
 	default:
 		LogErr.Printf("An error has occurred while parse membership infomation: %s\n", err)
 		if err = Response(w, http.StatusInternalServerError, resp); err != nil {
