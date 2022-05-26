@@ -5,6 +5,6 @@ package service
 // 결제 방식이 가지는 정보
 type Payment struct {
 	Type   string `json:"type"`
-	Detail string `json:"detail"`
+	Detail string `json:"detail,omit"`
 	Next   string `json:"next"`
 }
