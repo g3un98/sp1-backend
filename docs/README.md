@@ -10,4 +10,4 @@
         - prefix: "/wavve"
         - [/wavve/info](service/wavve.md#info)
 - [constant](constant.md)
-    - [membership](constant#membership)
+    - [membership](constant.md#membership)
