@@ -38,18 +38,6 @@ const (
 	// 계정 정보 선택자
 	NETFLIX_SEL_INFO_PAYMENT    = `div[class="account-section-group payment-details -wide"]`
 	NETFLIX_SEL_INFO_MEMBERSHIP = `div[data-uia="plan-section"] > section`
-
-	// 멤버십 종류
-	NETFLIX_MEMBERSHIP_TYPE_NO = iota
-	NETFLIX_MEMBERSHIP_TYPE_BASIC
-	NETFLIX_MEMBERSHIP_TYPE_STANDARD
-	NETFLIX_MEMBERSHIP_TYPE_PREMIUM
-
-	// 멤버십 종류별 가격
-	NETFLIX_MEMBERSHIP_COST_NO       = 0
-	NETFLIX_MEMBERSHIP_COST_BASIC    = 9_500
-	NETFLIX_MEMBERSHIP_COST_STANDARD = 13_500
-	NETFLIX_MEMBERSHIP_COST_PREMIUM  = 17_000
 )
 
 // Netflix 서비스명 반환
