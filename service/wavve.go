@@ -40,24 +40,6 @@ const (
 	WAVVE_SEL_INFO_PAYMENT_NEXT    = `#contents > div.mypooq-inner-wrap > section > div > div > div > table > tbody > tr > td:nth-child(5)`
 	WAVVE_SEL_INFO_MEMBERSHIP_TYPE = `#contents > div.mypooq-inner-wrap > section > div > div > div > table > tbody > tr > td:nth-child(2) > div > p.my-pay-tit > span:nth-child(3)`
 	WAVVE_SEL_INFO_MEMBERSHIP_COST = `#contents > div.mypooq-inner-wrap > section > div > div > div > table > tbody > tr > td:nth-child(4)`
-
-	// 멤버십 종류
-	WAVVE_MEMBERSHIP_TYPE_NO = iota
-	WAVVE_MEMBERSHIP_TYPE_BASIC
-	WAVVE_MEMBERSHIP_TYPE_STANDARD
-	WAVVE_MEMBERSHIP_TYPE_PREMIUM
-	WAVVE_MEMBERSHIP_TYPE_FLO
-	WAVVE_MEMBERSHIP_TYPE_BUGS
-	WAVVE_MEMBERSHIP_TYPE_KB
-
-	// 멤버십 종류별 가격
-	WAVVE_MEMBERSHIP_COST_NO       = 0
-	WAVVE_MEMBERSHIP_COST_BASIC    = 7_900
-	WAVVE_MEMBERSHIP_COST_STANDARD = 10_900
-	WAVVE_MEMBERSHIP_COST_PREMIUM  = 13_900
-	WAVVE_MEMBERSHIP_COST_FLO      = 13_750
-	WAVVE_MEMBERSHIP_COST_BUGS     = 13_750
-	WAVVE_MEMBERSHIP_COST_KB       = 6_700
 )
 
 // Wavve 서비스명 반환
