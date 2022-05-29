@@ -11,6 +11,76 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+func getNetflixAccount(id, pw string) (*account, error) {
+	ctx, cancel := chromedp.NewContext(
+		context.Background(),
+	)
+	defer cancel()
+	ctx, cancel = context.WithTimeout(ctx, 1*time.Minute)
+	defer cancel()
+
+	var account account
+    account.Id = id
+    account.Pw = pw
+
+	if len(account.Id) < 5 || len(account.Id) > 50 || len(account.Pw) < 4 || len(account.Pw) > 60 {
+		return nil, fiber.ErrBadRequest
+	}
+
+	msg, err := netflixLogin(&ctx, account)
+    checkError(err)
+	if msg != "" {
+		return nil, fiber.NewError(fiber.StatusUnauthorized, msg)
+	}
+	defer netflixLogout(&ctx)
+
+	var rawPayment, rawMembership string
+	err = chromedp.Run(
+		ctx,
+		chromedp.Navigate(`https://www.netflix.com/kr/youraccount`),
+		chromedp.Text(`div[class="account-section-group payment-details -wide"]`, &rawPayment, chromedp.NodeVisible),
+		chromedp.Text(`div[data-uia="plan-section"] > section`, &rawMembership, chromedp.NodeVisible),
+	)
+    checkError(err)
+
+	var (
+		dummy            string
+		year, month, day int
+	)
+	if rawPayment == "결제 정보가 없습니다" {
+		account.Payment = payment{}
+	} else {
+		payments := strings.Split(rawPayment, "\n")
+		_, err = fmt.Sscanf(payments[2], "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy)
+        checkError(err)
+
+		account.Payment = payment{
+			Type:   payments[0],
+			Detail: payments[1],
+			Next:   time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.FixedZone("KST", 9*60*60)).Unix(),
+		}
+	}
+
+	switch strings.Split(rawMembership, "\n")[0] {
+	case "스트리밍 멤버십에 가입하지 않으셨습니다.":
+		account.Membership.Type = MEMBERSHIP_TYPE_NO
+		account.Membership.Cost = MEMBERSHIP_COST_NO
+	case "베이식":
+		account.Membership.Type = MEMBERSHIP_NETLIFX_TYPE_BASIC
+		account.Membership.Cost = MEMBERSHIP_NETLIFX_COST_BASIC
+	case "스탠다드":
+		account.Membership.Type = MEMBERSHIP_NETLIFX_TYPE_STANDARD
+		account.Membership.Cost = MEMBERSHIP_NETLIFX_COST_STANDARD
+	case "프리미엄":
+		account.Membership.Type = MEMBERSHIP_NETLIFX_TYPE_PREMIUM
+		account.Membership.Cost = MEMBERSHIP_NETLIFX_COST_PREMIUM
+	default:
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Parse membership type")
+	}
+
+    return &account, nil
+}
+
 func netflixLogin(c *context.Context, a account) (string, error) {
 	var url, msg string
 
