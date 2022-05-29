@@ -5,15 +5,15 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/bson"
+	_ "go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 type user struct {
-    appId string `json="app_id" bson="app_id"`
-    appPw string `json="app_pw" bson="app_pw"`
+    appId string `json="app_id"`
+    appPw string `json="app_pw"`
 }
 
 const (
