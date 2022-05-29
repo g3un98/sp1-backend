@@ -59,6 +59,7 @@ func addUser(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
     fmt.Println(u)
+    fmt.Println(string(c.Body()))
 
     if _, err := getCollection(client, "user").InsertOne(ctx, u); err != nil { 
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
