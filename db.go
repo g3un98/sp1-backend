@@ -24,7 +24,7 @@ type member struct {
 }
 
 type group struct {
-	group_id   primitive.ObjectID `json:"idx" bson:"_id,omitempty"`
+	group_id   string            `json:"idx" bson:"_id,omitempty"`
 	Ott        string            `json:"ott" bson:"ott"`
     Account    account           `json:"account" bson:"account"`
     Updatetime int64             `json:"updatetime" bson:"updatetime"`
@@ -72,7 +72,7 @@ func addUser(c *fiber.Ctx) error {
         return c.SendStatus(fiber.StatusBadRequest)
     }
 
-	filter := bson.M{"app_id": user.AppId}
+	filter := bson.M{ "app_id": user.AppId }
 
 	num, err := getCollection(client, "user").CountDocuments(ctx, filter)
     if err != nil {
@@ -103,7 +103,7 @@ func delUser(c *fiber.Ctx) error {
         return c.SendStatus(fiber.StatusBadRequest)
     }
 
-	filter := bson.M{"app_id": user.AppId, "app_pw": user.AppPw}
+	filter := bson.M{ "app_id": user.AppId, "app_pw": user.AppPw }
 
 	num, err := getCollection(client, "user").CountDocuments(ctx, filter)
     if err != nil {
@@ -134,8 +134,8 @@ func setUser(c *fiber.Ctx) error {
         return c.SendStatus(fiber.StatusBadRequest)
     }
 
-	filter := bson.M{"app_id": user.AppId, "app_pw": user.AppPw}
-	update := bson.M{"$set": bson.M{"app_id": user.AppId, "app_pw": user.AppPw, "app_email": user.AppEmail}}
+	filter := bson.M{ "app_id": user.AppId, "app_pw": user.AppPw }
+	update := bson.M{ "$set": bson.M{"app_id": user.AppId, "app_pw": user.AppPw, "app_email": user.AppEmail} }
 
 	num, err := getCollection(client, "user").CountDocuments(ctx, filter)
     if err != nil {
@@ -166,7 +166,7 @@ func login(c *fiber.Ctx) error {
         return c.SendStatus(fiber.StatusBadRequest)
     }
 
-	filter := bson.M{"app_id": user.AppId, "app_pw": user.AppPw}
+	filter := bson.M{ "app_id": user.AppId, "app_pw": user.AppPw }
 
 	num, err := getCollection(client, "user").CountDocuments(ctx, filter)
     if err != nil {
@@ -188,7 +188,11 @@ func getGroup(c *fiber.Ctx) error {
 	defer cancel()
 	defer client.Disconnect(ctx)
 
-	filter := bson.M{"idx": c.Params("idx")}
+    _id, err := primitive.ObjectIDFromHex(c.Params("groupId"))
+    if err != nil {
+        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+    }
+	filter := bson.M{ "_id": _id }
 
 	num, err := getCollection(client, "group").CountDocuments(ctx, filter)
     if err != nil {
@@ -253,7 +257,7 @@ func addGroup(c *fiber.Ctx) error {
 
 		if _, err = getCollection(client, "group").InsertOne(ctx, group); err != nil {
             return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-                            }
+        }
 
 		return c.SendStatus(fiber.StatusOK)
 	case 1:
