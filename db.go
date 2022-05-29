@@ -313,3 +313,47 @@ func delGroup(c *fiber.Ctx) error {
 
 	return c.SendStatus(fiber.StatusNotFound)
 }
+
+func setGroup(c *fiber.Ctx) error {
+	client, ctx, cancel, err := connectDB()
+    if err != nil {
+        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+    }
+	defer cancel()
+	defer client.Disconnect(ctx)
+
+	var parser struct {
+        OttPw string `json:"ott_pw" bson:"ott_pw"`
+        Payment payment `json:"payment" bson:"payment"`
+        Membership membership `json:"membership" bson:"membership"`
+	}
+	if err = c.BodyParser(&parser); err != nil {
+        return c.SendStatus(fiber.StatusBadRequest)
+    }
+
+    _id, err := primitive.ObjectIDFromHex(c.Params("groupId"))
+    if err != nil {
+        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+    }
+
+    filter := bson.M{ "_id": _id }
+	num, err := getCollection(client, "group").CountDocuments(ctx, filter)
+
+    if num == 1 {
+        update := bson.M{ "$set": bson.M{
+            "account.pw": parser.OttPw,
+            "account.payment.type": parser.Payment.Type,
+            "account.payment.detail": parser.Payment.Detail,
+            "account.payment.next": parser.Payment.Next,
+            "account.membership.type": parser.Membership.Type,
+            "account.membership.cost": parser.Membership.Cost,
+        } }
+		if _, err = getCollection(client, "group").UpdateOne(ctx, filter, update); err != nil {
+            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+        }
+
+		return c.SendStatus(fiber.StatusOK)
+    }
+
+	return c.SendStatus(fiber.StatusNotFound)
+}

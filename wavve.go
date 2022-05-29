@@ -28,7 +28,9 @@ func getWavveAccount(id, pw string) (*account, error) {
 	}
 
 	msg, err := wavveLogin(&ctx, account)
-    checkError(err)
+    if err != nil {
+        return nil, err
+    }
 	if msg != "" {
 		return nil, fiber.NewError(fiber.StatusUnauthorized, msg)
 	}
@@ -40,7 +42,9 @@ func getWavveAccount(id, pw string) (*account, error) {
 		chromedp.Navigate(`https://www.wavve.com/my/subscription_ticket`),
 		chromedp.Text(`#contents`, &contents, chromedp.NodeVisible),
 	)
-    checkError(err)
+    if err != nil {
+        return nil, err
+    }
 
 	if contents == "이용권 결제 내역이 없어요." {
 		account.Payment = payment{}
@@ -50,14 +54,15 @@ func getWavveAccount(id, pw string) (*account, error) {
 	}
 
 	var rawPaymentType, rawPaymentNext, rawMembershipType, rawMembershipCost string
-	err = chromedp.Run(
+	if err = chromedp.Run(
 		ctx,
 		chromedp.Text(`#contents > div.mypooq-inner-wrap > section > div > div > div > table > tbody > tr > td:nth-child(6) > span > span`, &rawPaymentType, chromedp.NodeVisible),
 		chromedp.Text(`#contents > div.mypooq-inner-wrap > section > div > div > div > table > tbody > tr > td:nth-child(5)`, &rawPaymentNext, chromedp.NodeVisible),
 		chromedp.Text(`#contents > div.mypooq-inner-wrap > section > div > div > div > table > tbody > tr > td:nth-child(2) > div > p.my-pay-tit > span:nth-child(3)`, &rawMembershipType, chromedp.NodeVisible),
 		chromedp.Text(`#contents > div.mypooq-inner-wrap > section > div > div > div > table > tbody > tr > td:nth-child(4)`, &rawMembershipCost, chromedp.NodeVisible),
-	)
-    checkError(err)
+	); err != nil {
+        return nil, err
+    }
 
 	var year, month, day int
 	fmt.Sscanf(strings.Split(rawPaymentNext, " ")[0], "%d-%d-%d", &year, &month, &day)
@@ -67,8 +72,9 @@ func getWavveAccount(id, pw string) (*account, error) {
 	}
 
 	var dummy string
-	_, err = fmt.Sscanf(rawMembershipCost, "%d%s", &account.Membership.Cost, &dummy)
-    checkError(err)
+	if _, err = fmt.Sscanf(rawMembershipCost, "%d%s", &account.Membership.Cost, &dummy); err != nil {
+        return nil, err
+    }
 
 	switch rawMembershipType {
 	case "Basic":

@@ -28,20 +28,23 @@ func getNetflixAccount(id, pw string) (*account, error) {
 	}
 
 	msg, err := netflixLogin(&ctx, account)
-    checkError(err)
+    if err != nil {
+        return nil, err
+    }
 	if msg != "" {
 		return nil, fiber.NewError(fiber.StatusUnauthorized, msg)
 	}
 	defer netflixLogout(&ctx)
 
 	var rawPayment, rawMembership string
-	err = chromedp.Run(
+	if err = chromedp.Run(
 		ctx,
 		chromedp.Navigate(`https://www.netflix.com/kr/youraccount`),
 		chromedp.Text(`div[class="account-section-group payment-details -wide"]`, &rawPayment, chromedp.NodeVisible),
 		chromedp.Text(`div[data-uia="plan-section"] > section`, &rawMembership, chromedp.NodeVisible),
-	)
-    checkError(err)
+	); err != nil {
+        return nil, err
+    }
 
 	var (
 		dummy            string
@@ -51,8 +54,9 @@ func getNetflixAccount(id, pw string) (*account, error) {
 		account.Payment = payment{}
 	} else {
 		payments := strings.Split(rawPayment, "\n")
-		_, err = fmt.Sscanf(payments[2], "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy)
-        checkError(err)
+		if _, err = fmt.Sscanf(payments[2], "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy); err != nil {
+            return nil, err
+        }
 
 		account.Payment = payment{
 			Type:   payments[0],

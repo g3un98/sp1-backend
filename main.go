@@ -24,9 +24,7 @@ func main() {
 	app.Get("/group/:groupId", getGroup)
 	app.Post("/group", addGroup)
     app.Delete("/group/:groupId", delGroup)
-	/*
-	   app.Put("/ott/info/:idx", setGroup)
-	*/
+	app.Put("/group/:groupId", setGroup)
 
 	netflixApi := app.Group("/netflix")
 	netflixApi.Post("/info", netflixInfo)
