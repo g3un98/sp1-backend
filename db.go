@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"time"
+    "fmt"
 
 	"github.com/gofiber/fiber/v2"
 	_ "go.mongodb.org/mongo-driver/bson"
@@ -57,6 +58,7 @@ func addUser(c *fiber.Ctx) error {
 	if err := c.BodyParser(&u); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
+    fmt.Println(u)
 
     if _, err := getCollection(client, "user").InsertOne(ctx, u); err != nil { 
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
