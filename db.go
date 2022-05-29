@@ -3,18 +3,17 @@ package main
 import (
 	"context"
 	"time"
-    "fmt"
 
 	"github.com/gofiber/fiber/v2"
-	_ "go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 type user struct {
-    appId string `json:"app_id"`
-    appPw string `json:"app_pw"`
+    AppId string `json:"app_id" bson:"app_id,unique"`
+    AppPw string `json:"app_pw" bson:"app_pw"`
 }
 
 const (
@@ -54,16 +53,23 @@ func addUser(c *fiber.Ctx) error {
     defer cancel()
     defer client.Disconnect(ctx)
 
-    var u user
-	if err := c.BodyParser(&u); err != nil {
+    var user user
+	if err := c.BodyParser(&user); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
-    fmt.Println(u)
-    fmt.Println(string(c.Body()))
 
-    if _, err := getCollection(client, "user").InsertOne(ctx, u); err != nil { 
+    num, err := getCollection(client, "user").CountDocuments(ctx, bson.M{"app_id": user.AppId})
+    if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
     }
 
-    return c.SendStatus(fiber.StatusOK)
+    if num == 0 {
+        if _, err := getCollection(client, "user").InsertOne(ctx, user); err != nil { 
+		    return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+        }
+
+        return c.SendStatus(fiber.StatusOK)
+    }
+
+    return c.SendStatus(fiber.StatusUnauthorized)
 }
