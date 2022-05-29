@@ -17,6 +17,14 @@ type user struct {
     AppEmail string `json:"app_email,omitempty" bson:"app_email,omitempty"`
 }
 
+type group struct {
+    Idx int `json:"idx" bson:"idx"`
+    Ott string `json:"ott" bson:"ott"`
+    Account account `json:"account" bson:"account"`
+    Updatetime int64 `json:"updatetime" bson:"updatetime"`
+    Members []struct{} `json:"members" bson:"members"`
+}
+
 const (
     DB_URI = "mongodb://db:27017"
     DB_NAME = "ott"
@@ -162,6 +170,36 @@ func login(c *fiber.Ctx) error {
 
     if num == 1 {
         return c.SendStatus(fiber.StatusOK)
+    }
+
+    return c.SendStatus(fiber.StatusNotFound)
+}
+
+func getGroup(c *fiber.Ctx) error {
+    client, ctx, cancel, err := connectDB()
+    if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+    }
+    defer cancel()
+    defer client.Disconnect(ctx)
+
+    filter := bson.M{ "idx": c.Params("idx") }
+
+    num, err := getCollection(client, "group").CountDocuments(ctx, filter)
+    if err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+    }
+
+    var group bson.M
+    if num == 1 {
+        if err := getCollection(client, "group").FindOne(ctx, filter).Decode(&group); err != nil {
+		    return c.SendStatus(fiber.StatusBadRequest)
+        }
+        body, err := bson.Marshal(group)
+        if err != nil {
+		    return c.SendStatus(fiber.StatusBadRequest)
+        }
+        return c.Send(body)
     }
 
     return c.SendStatus(fiber.StatusNotFound)
