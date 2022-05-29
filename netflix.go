@@ -35,7 +35,7 @@ func netflixLogin(c *context.Context, a account) (string, error) {
 		); err != nil {
 			return "", err
 		}
-        return `{ "message": "` + msg + `" }`, nil
+        return msg, nil
 	}
 
 	return "", nil

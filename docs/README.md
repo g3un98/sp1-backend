@@ -62,13 +62,6 @@
 
 ### Response
 
-```json
-{
-    "message": "오류 메시지"
-}
-```
-
-
 ### Status code
 
 | Status                    | Note                                                               |
