@@ -19,7 +19,7 @@ type user struct {
 }
 
 type member struct {
-	AppId   string `json:"app_ip" bson:"app_ip"`
+	AppId   string `json:"app_id" bson:"app_id"`
 	IsAdmin int    `json:"is_admin" bson:"is_admin"`
 }
 
@@ -232,4 +232,33 @@ func addGroup(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusBadRequest)
+}
+
+func delGroup(c *fiber.Ctx) error {
+	client, ctx, cancel, err := connectDB()
+    checkError(err)
+	defer cancel()
+	defer client.Disconnect(ctx)
+
+	var parser struct {
+		AppId string `json:"app_id" bson:"app_id"`
+	}
+	err = c.BodyParser(&parser)
+    checkError(err)
+
+    _id, err := primitive.ObjectIDFromHex(c.Params("groupId"))
+    checkError(err)
+
+    var group group
+    filter := bson.M{ "_id": _id, "members.app_id": parser.AppId }
+	err = getCollection(client, "group").FindOne(ctx, filter).Decode(&group)
+	checkError(err)
+
+    if containAdminMembers(group.Members, parser.AppId) {
+		_, err = getCollection(client, "group").DeleteOne(ctx, filter)
+        checkError(err)
+        return c.SendStatus(fiber.StatusOK)
+    }
+
+	return c.SendStatus(fiber.StatusNotFound)
 }

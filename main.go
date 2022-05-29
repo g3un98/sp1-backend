@@ -21,10 +21,10 @@ func main() {
 
 	app.Post("/login", login)
 
-	app.Get("/group/:idx", getGroup)
+	app.Get("/group/:groupId", getGroup)
 	app.Post("/group", addGroup)
+    app.Delete("/group/:groupId", delGroup)
 	/*
-	   app.Delete("/ott/group", delGroup)
 	   app.Put("/ott/info/:idx", setGroup)
 	*/
 
