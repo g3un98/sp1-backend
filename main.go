@@ -19,9 +19,9 @@ func main() {
     app.Delete("/user", delUser)
     app.Put("/user", setUser)
 
-    /*
     app.Post("/login", login)
 
+    /*
     app.Get("/ott/info/:idx", getGroup)
     app.Post("/ott/group", addGroup)
     app.Delete("/ott/group", delGroup)

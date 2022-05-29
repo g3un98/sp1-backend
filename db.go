@@ -63,12 +63,12 @@ func addUser(c *fiber.Ctx) error {
 
     num, err := getCollection(client, "user").CountDocuments(ctx, filter)
     if err != nil {
-		return c.SendStatus(fiber.StatusUnauthorized)
+		return c.SendStatus(fiber.StatusBadRequest)
     }
 
     if num == 0 {
         if _, err := getCollection(client, "user").InsertOne(ctx, user); err != nil { 
-		    return c.SendStatus(fiber.StatusUnauthorized)
+		    return c.SendStatus(fiber.StatusBadRequest)
         }
 
         return c.SendStatus(fiber.StatusCreated)
@@ -94,12 +94,12 @@ func delUser(c *fiber.Ctx) error {
 
     num, err := getCollection(client, "user").CountDocuments(ctx, filter)
     if err != nil {
-		return c.SendStatus(fiber.StatusUnauthorized)
+		return c.SendStatus(fiber.StatusBadRequest)
     }
 
     if num == 1 {
         if _, err := getCollection(client, "user").DeleteOne(ctx, user); err != nil { 
-		    return c.SendStatus(fiber.StatusUnauthorized)
+		    return c.SendStatus(fiber.StatusBadRequest)
         }
 
         return c.SendStatus(fiber.StatusOK)
@@ -138,4 +138,31 @@ func setUser(c *fiber.Ctx) error {
     }
 
     return c.SendStatus(fiber.StatusUnauthorized)
+}
+
+func login(c *fiber.Ctx) error {
+    client, ctx, cancel, err := connectDB()
+    if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+    }
+    defer cancel()
+    defer client.Disconnect(ctx)
+
+    var user user
+	if err := c.BodyParser(&user); err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
+    filter := bson.M{ "app_id": user.AppId, "app_pw": user.AppPw }
+
+    num, err := getCollection(client, "user").CountDocuments(ctx, filter)
+    if err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+    }
+
+    if num == 1 {
+        return c.SendStatus(fiber.StatusOK)
+    }
+
+    return c.SendStatus(fiber.StatusNotFound)
 }
