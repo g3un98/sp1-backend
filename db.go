@@ -13,8 +13,8 @@ import (
 )
 
 type user struct {
-    appId string `json="app_id" bson="app_id"`
-    appPw string `json="app_pw" bson="app_pw"`
+    appId string `json="app_id"`
+    appPw string `json="app_pw"`
 }
 
 const (
@@ -55,7 +55,9 @@ func addUser(c *fiber.Ctx) error {
     defer client.Disconnect(ctx)
 
     var u user
-    c.BodyParser(&u)
+	if err := c.BodyParser(&u); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
     fmt.Println(u)
 
     if _, err := getCollection(client, "user").InsertOne(ctx, u); err != nil { 
