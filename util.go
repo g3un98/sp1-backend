@@ -1,10 +1,5 @@
 package main
 
-import (
-	"log"
-
-	"github.com/gofiber/fiber/v2"
-)
 
 func containAdminMembers(s []member, v string) bool {
 	for _, vv := range s {
@@ -22,10 +17,4 @@ func containMembers(s []member, v string) bool {
 		}
 	}
 	return false
-}
-
-func checkError(err error) {
-    if err != nil {
-        log.Fatal(fiber.NewError(fiber.StatusInternalServerError, err.Error()))
-    }
 }
