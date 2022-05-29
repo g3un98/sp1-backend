@@ -15,17 +15,16 @@ func main() {
 	})
 	app.Use(logger.New(), recover.New())
 
-    app.Post("/users", addUser)
-    app.Delete("/users", delUser)
-    app.Put("/users", setUser)
+    app.Post("/user", addUser)
+    app.Delete("/user", delUser)
+    app.Put("/user", setUser)
 
     app.Post("/login", login)
 
-    app.Post("/otts/group", addGroup)
-    app.Delete("/otts/group", delGroup)
-
-    app.Get("/otts/info/:idx", getGroup)
-    app.Put("/otts/info/:idx", setGroup)
+    app.Get("/ott/info/:idx", getGroup)
+    app.Post("/ott/group", addGroup)
+    app.Delete("/ott/group", delGroup)
+    app.Put("/ott/info/:idx", setGroup)
 
 	netflixApi := app.Group("/netflix")
 	netflixApi.Post("/info", netflixInfo)

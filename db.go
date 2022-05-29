@@ -1,157 +1,64 @@
 package main
 
 import (
-    "net/http"
+	"context"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-const DB_API_BASE_URL = "http://api:12390"
+type user struct {
+    appId string `json="app_id" bson="app_id"`
+    appPw string `json="app_pw" bson="app_pw"`
+}
+
+const (
+    DB_URI = "mongo://localhost:27017"
+    DB_NAME = "ott"
+)
+
+func connectDB() (*mongo.Client, context.Context, context.CancelFunc, error) {
+    ctx, cancel := context.WithTimeout(context.TODO(), 1 * time.Minute)
+    
+    clientOptions := options.Client().ApplyURI(DB_URI).SetAuth(options.Credential{
+        Username: "root",
+        Password: "root",
+    })
+    client, err := mongo.Connect(ctx, clientOptions)
+    if err != nil {
+        return nil, nil, nil, err
+    }
+
+    err = client.Ping(ctx, readpref.Primary())
+    if err != nil {
+        return nil, nil, nil, err
+    }
+
+    return client, ctx, cancel, nil
+}
+
+func getCollection(client *mongo.Client, colName string) *mongo.Collection {
+    return client.Database(DB_NAME).Collection(colName)
+}
 
 func addUser(c *fiber.Ctx) error {
-    client := &http.Client{}
-
-    req, err := http.NewRequest(http.MethodPost, DB_API_BASE_URL + "/users", c.Context().RequestBodyStream())
+    client, ctx, cancel, err := connectDB()
     if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
     }
-    req.Header.Add("Content-Type", "application/json")
+    defer cancel()
+    defer client.Disconnect(ctx)
 
-    res, err := client.Do(req)
-    if err != nil {
+    var u user
+    c.BodyParser(&u)
+
+    if _, err := getCollection(client, "user").InsertOne(ctx, u); err != nil { 
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
     }
-    defer res.Body.Close()
 
-    return c.SendStatus(res.StatusCode)
-}
-
-func delUser(c *fiber.Ctx) error {
-    client := &http.Client{}
-
-    req, err := http.NewRequest(http.MethodDelete, DB_API_BASE_URL + "/users", c.Context().RequestBodyStream())
-    if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    req.Header.Add("Content-Type", "application/json")
-
-    res, err := client.Do(req)
-    if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    defer res.Body.Close()
-
-    return c.SendStatus(res.StatusCode)
-}
-
-func setUser(c *fiber.Ctx) error {
-    client := &http.Client{}
-
-    req, err := http.NewRequest(http.MethodPut, DB_API_BASE_URL + "/users", c.Context().RequestBodyStream())
-    if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    req.Header.Add("Content-Type", "application/json")
-
-    res, err := client.Do(req)
-    if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    defer res.Body.Close()
-
-    return c.SendStatus(res.StatusCode)
-}
-
-func login(c *fiber.Ctx) error {
-    client := &http.Client{}
-
-    req, err := http.NewRequest(http.MethodPost, DB_API_BASE_URL + "/login", c.Context().RequestBodyStream())
-    if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    req.Header.Add("Content-Type", "application/json")
-
-    res, err := client.Do(req)
-    if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    defer res.Body.Close()
-
-    return c.SendStatus(res.StatusCode)
-}
-
-func addGroup(c *fiber.Ctx) error {
-    client := &http.Client{}
-
-    req, err := http.NewRequest(http.MethodPost, DB_API_BASE_URL + "/group", c.Context().RequestBodyStream())
-    if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    req.Header.Add("Content-Type", "application/json")
-
-    res, err := client.Do(req)
-    if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    defer res.Body.Close()
-
-    return c.SendStatus(res.StatusCode)
-}
-
-func delGroup(c *fiber.Ctx) error {
-    client := &http.Client{}
-
-    req, err := http.NewRequest(http.MethodDelete, DB_API_BASE_URL + "/group", c.Context().RequestBodyStream())
-    if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    req.Header.Add("Content-Type", "application/json")
-
-    res, err := client.Do(req)
-    if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    defer res.Body.Close()
-
-    return c.SendStatus(res.StatusCode)
-}
-
-func getGroup(c *fiber.Ctx) error {
-    client := &http.Client{}
-
-    req, err := http.NewRequest(http.MethodGet, DB_API_BASE_URL + "/otts/group/" + c.Params("idx"), c.Context().RequestBodyStream())
-    if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    req.Header.Add("Content-Type", "application/json")
-
-    res, err := client.Do(req)
-    if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    defer res.Body.Close()
-
-    if res.StatusCode == 200 {
-        return c.SendStream(res.Body)
-    }
-
-    return c.SendStatus(res.StatusCode)
-}
-
-func setGroup(c *fiber.Ctx) error {
-    client := &http.Client{}
-
-    req, err := http.NewRequest(http.MethodGet, DB_API_BASE_URL + "/otts/group/" + c.Params("idx"), c.Context().RequestBodyStream())
-    if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    req.Header.Add("Content-Type", "application/json")
-
-    res, err := client.Do(req)
-    if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    defer res.Body.Close()
-
-    return c.SendStatus(res.StatusCode)
+    return c.SendStatus(fiber.StatusOK)
 }
