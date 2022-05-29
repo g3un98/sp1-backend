@@ -17,11 +17,10 @@ func main() {
 
 	netflixApi := app.Group("/netflix")
 	netflixApi.Post("/info", netflixInfo)
+	netflixApi.Delete("/membership", netflixUnsubscribe)
 
 	wavveApi := app.Group("/wavve")
-	wavveApi.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, Wavve!")
-	})
+	wavveApi.Post("/info", wavveInfo)
 
 	app.Listen(":8000")
 }
