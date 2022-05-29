@@ -15,6 +15,7 @@ func addUser(c *fiber.Ctx) error {
     if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
     }
+    req.Header.Add("Content-Type", "application/json")
 
     res, err := client.Do(req)
     if err != nil {
@@ -32,6 +33,7 @@ func delUser(c *fiber.Ctx) error {
     if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
     }
+    req.Header.Add("Content-Type", "application/json")
 
     res, err := client.Do(req)
     if err != nil {
@@ -49,6 +51,7 @@ func setUser(c *fiber.Ctx) error {
     if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
     }
+    req.Header.Add("Content-Type", "application/json")
 
     res, err := client.Do(req)
     if err != nil {
@@ -66,6 +69,7 @@ func login(c *fiber.Ctx) error {
     if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
     }
+    req.Header.Add("Content-Type", "application/json")
 
     res, err := client.Do(req)
     if err != nil {
@@ -83,6 +87,7 @@ func addGroup(c *fiber.Ctx) error {
     if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
     }
+    req.Header.Add("Content-Type", "application/json")
 
     res, err := client.Do(req)
     if err != nil {
@@ -100,6 +105,7 @@ func delGroup(c *fiber.Ctx) error {
     if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
     }
+    req.Header.Add("Content-Type", "application/json")
 
     res, err := client.Do(req)
     if err != nil {
@@ -117,6 +123,7 @@ func getGroup(c *fiber.Ctx) error {
     if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
     }
+    req.Header.Add("Content-Type", "application/json")
 
     res, err := client.Do(req)
     if err != nil {
@@ -138,6 +145,7 @@ func setGroup(c *fiber.Ctx) error {
     if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
     }
+    req.Header.Add("Content-Type", "application/json")
 
     res, err := client.Do(req)
     if err != nil {
