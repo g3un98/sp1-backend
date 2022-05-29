@@ -20,17 +20,17 @@ func getWavveAccount(id, pw string) (*account, error) {
 	defer cancel()
 
 	var account account
-    account.Id = id
-    account.Pw = pw
+	account.Id = id
+	account.Pw = pw
 
 	if len(account.Id) < 1 || len(account.Pw) < 1 {
 		return nil, fiber.ErrBadRequest
 	}
 
 	msg, err := wavveLogin(&ctx, account)
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 	if msg != "" {
 		return nil, fiber.NewError(fiber.StatusUnauthorized, msg)
 	}
@@ -42,9 +42,9 @@ func getWavveAccount(id, pw string) (*account, error) {
 		chromedp.Navigate(`https://www.wavve.com/my/subscription_ticket`),
 		chromedp.Text(`#contents`, &contents, chromedp.NodeVisible),
 	)
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
 	if contents == "이용권 결제 내역이 없어요." {
 		account.Payment = payment{}
@@ -61,8 +61,8 @@ func getWavveAccount(id, pw string) (*account, error) {
 		chromedp.Text(`#contents > div.mypooq-inner-wrap > section > div > div > div > table > tbody > tr > td:nth-child(2) > div > p.my-pay-tit > span:nth-child(3)`, &rawMembershipType, chromedp.NodeVisible),
 		chromedp.Text(`#contents > div.mypooq-inner-wrap > section > div > div > div > table > tbody > tr > td:nth-child(4)`, &rawMembershipCost, chromedp.NodeVisible),
 	); err != nil {
-        return nil, err
-    }
+		return nil, err
+	}
 
 	var year, month, day int
 	fmt.Sscanf(strings.Split(rawPaymentNext, " ")[0], "%d-%d-%d", &year, &month, &day)
@@ -73,8 +73,8 @@ func getWavveAccount(id, pw string) (*account, error) {
 
 	var dummy string
 	if _, err = fmt.Sscanf(rawMembershipCost, "%d%s", &account.Membership.Cost, &dummy); err != nil {
-        return nil, err
-    }
+		return nil, err
+	}
 
 	switch rawMembershipType {
 	case "Basic":

@@ -20,17 +20,17 @@ func getNetflixAccount(id, pw string) (*account, error) {
 	defer cancel()
 
 	var account account
-    account.Id = id
-    account.Pw = pw
+	account.Id = id
+	account.Pw = pw
 
 	if len(account.Id) < 5 || len(account.Id) > 50 || len(account.Pw) < 4 || len(account.Pw) > 60 {
 		return nil, fiber.ErrBadRequest
 	}
 
 	msg, err := netflixLogin(&ctx, account)
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 	if msg != "" {
 		return nil, fiber.NewError(fiber.StatusUnauthorized, msg)
 	}
@@ -43,8 +43,8 @@ func getNetflixAccount(id, pw string) (*account, error) {
 		chromedp.Text(`div[class="account-section-group payment-details -wide"]`, &rawPayment, chromedp.NodeVisible),
 		chromedp.Text(`div[data-uia="plan-section"] > section`, &rawMembership, chromedp.NodeVisible),
 	); err != nil {
-        return nil, err
-    }
+		return nil, err
+	}
 
 	var (
 		dummy            string
@@ -55,8 +55,8 @@ func getNetflixAccount(id, pw string) (*account, error) {
 	} else {
 		payments := strings.Split(rawPayment, "\n")
 		if _, err = fmt.Sscanf(payments[2], "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy); err != nil {
-            return nil, err
-        }
+			return nil, err
+		}
 
 		account.Payment = payment{
 			Type:   payments[0],
@@ -82,7 +82,7 @@ func getNetflixAccount(id, pw string) (*account, error) {
 		return nil, fiber.NewError(fiber.StatusInternalServerError, "Parse membership type")
 	}
 
-    return &account, nil
+	return &account, nil
 }
 
 func netflixLogin(c *context.Context, a account) (string, error) {

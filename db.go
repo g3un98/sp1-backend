@@ -24,11 +24,11 @@ type member struct {
 }
 
 type group struct {
-	group_id   string            `json:"idx" bson:"_id,omitempty"`
-	Ott        string            `json:"ott" bson:"ott"`
-    Account    account           `json:"account" bson:"account"`
-    Updatetime int64             `json:"updatetime" bson:"updatetime"`
-	Members    []member          `json:"members" bson:"members"`
+	group_id   string   `json:"idx" bson:"_id,omitempty"`
+	Ott        string   `json:"ott" bson:"ott"`
+	Account    account  `json:"account" bson:"account"`
+	Updatetime int64    `json:"updatetime" bson:"updatetime"`
+	Members    []member `json:"members" bson:"members"`
 }
 
 const (
@@ -44,13 +44,13 @@ func connectDB() (*mongo.Client, context.Context, context.CancelFunc, error) {
 		Password: "root",
 	})
 	client, err := mongo.Connect(ctx, clientOptions)
-    if err != nil {
-        return nil, nil, nil, err
-    }
+	if err != nil {
+		return nil, nil, nil, err
+	}
 
 	if err = client.Ping(ctx, readpref.Primary()); err != nil {
-        return nil, nil, nil, err
-    }
+		return nil, nil, nil, err
+	}
 
 	return client, ctx, cancel, nil
 }
@@ -61,28 +61,28 @@ func getCollection(client *mongo.Client, colName string) *mongo.Collection {
 
 func addUser(c *fiber.Ctx) error {
 	client, ctx, cancel, err := connectDB()
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 	defer cancel()
 	defer client.Disconnect(ctx)
 
 	var user user
 	if err = c.BodyParser(&user); err != nil {
-        return c.SendStatus(fiber.StatusBadRequest)
-    }
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
 
-	filter := bson.M{ "app_id": user.AppId }
+	filter := bson.M{"app_id": user.AppId}
 
 	num, err := getCollection(client, "user").CountDocuments(ctx, filter)
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 
 	if num == 0 {
 		if _, err = getCollection(client, "user").InsertOne(ctx, user); err != nil {
-            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
 
 		return c.SendStatus(fiber.StatusCreated)
 	}
@@ -92,28 +92,28 @@ func addUser(c *fiber.Ctx) error {
 
 func delUser(c *fiber.Ctx) error {
 	client, ctx, cancel, err := connectDB()
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 	defer cancel()
 	defer client.Disconnect(ctx)
 
 	var user user
 	if err = c.BodyParser(&user); err != nil {
-        return c.SendStatus(fiber.StatusBadRequest)
-    }
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
 
-	filter := bson.M{ "app_id": user.AppId, "app_pw": user.AppPw }
+	filter := bson.M{"app_id": user.AppId, "app_pw": user.AppPw}
 
 	num, err := getCollection(client, "user").CountDocuments(ctx, filter)
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 
 	if num == 1 {
 		if _, err = getCollection(client, "user").DeleteOne(ctx, user); err != nil {
-            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
 
 		return c.SendStatus(fiber.StatusOK)
 	}
@@ -123,29 +123,29 @@ func delUser(c *fiber.Ctx) error {
 
 func setUser(c *fiber.Ctx) error {
 	client, ctx, cancel, err := connectDB()
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 	defer cancel()
 	defer client.Disconnect(ctx)
 
 	var user user
 	if err = c.BodyParser(&user); err != nil {
-        return c.SendStatus(fiber.StatusBadRequest)
-    }
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
 
-	filter := bson.M{ "app_id": user.AppId, "app_pw": user.AppPw }
-	update := bson.M{ "$set": bson.M{"app_id": user.AppId, "app_pw": user.AppPw, "app_email": user.AppEmail} }
+	filter := bson.M{"app_id": user.AppId, "app_pw": user.AppPw}
+	update := bson.M{"$set": bson.M{"app_id": user.AppId, "app_pw": user.AppPw, "app_email": user.AppEmail}}
 
 	num, err := getCollection(client, "user").CountDocuments(ctx, filter)
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 
 	if num == 1 {
 		if _, err = getCollection(client, "user").UpdateOne(ctx, filter, update); err != nil {
-            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
 
 		return c.SendStatus(fiber.StatusOK)
 	}
@@ -155,23 +155,23 @@ func setUser(c *fiber.Ctx) error {
 
 func login(c *fiber.Ctx) error {
 	client, ctx, cancel, err := connectDB()
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 	defer cancel()
 	defer client.Disconnect(ctx)
 
 	var user user
 	if err = c.BodyParser(&user); err != nil {
-        return c.SendStatus(fiber.StatusBadRequest)
-    }
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
 
-	filter := bson.M{ "app_id": user.AppId, "app_pw": user.AppPw }
+	filter := bson.M{"app_id": user.AppId, "app_pw": user.AppPw}
 
 	num, err := getCollection(client, "user").CountDocuments(ctx, filter)
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 
 	if num == 1 {
 		return c.SendStatus(fiber.StatusOK)
@@ -182,32 +182,32 @@ func login(c *fiber.Ctx) error {
 
 func getGroup(c *fiber.Ctx) error {
 	client, ctx, cancel, err := connectDB()
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 	defer cancel()
 	defer client.Disconnect(ctx)
 
-    _id, err := primitive.ObjectIDFromHex(c.Params("groupId"))
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-	filter := bson.M{ "_id": _id }
+	_id, err := primitive.ObjectIDFromHex(c.Params("groupId"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	filter := bson.M{"_id": _id}
 
 	num, err := getCollection(client, "group").CountDocuments(ctx, filter)
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 
 	var group bson.M
 	if num == 1 {
 		if err = getCollection(client, "group").FindOne(ctx, filter).Decode(&group); err != nil {
-            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
 		body, err := bson.Marshal(group)
-        if err != nil {
-            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
+		if err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
 		return c.Send(body)
 	}
 
@@ -216,9 +216,9 @@ func getGroup(c *fiber.Ctx) error {
 
 func addGroup(c *fiber.Ctx) error {
 	client, ctx, cancel, err := connectDB()
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 	defer cancel()
 	defer client.Disconnect(ctx)
 
@@ -230,23 +230,23 @@ func addGroup(c *fiber.Ctx) error {
 	}
 
 	if err = c.BodyParser(&parser); err != nil {
-        return c.SendStatus(fiber.StatusBadRequest)
-    }
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
 
-    filter := bson.M{ "ott": parser.Ott, "account.id": parser.OttId, "account.pw": parser.OttPw }
+	filter := bson.M{"ott": parser.Ott, "account.id": parser.OttId, "account.pw": parser.OttPw}
 	num, err := getCollection(client, "group").CountDocuments(ctx, filter)
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 
 	var group group
 	switch num {
 	case 0:
-        account, err := getAccount(parser.Ott, parser.OttId, parser.OttPw)
-        if err != nil {
-            return err
-        }
-        
+		account, err := getAccount(parser.Ott, parser.OttId, parser.OttPw)
+		if err != nil {
+			return err
+		}
+
 		group.Ott = parser.Ott
 		group.Account = *account
 		group.Updatetime = time.Now().Unix()
@@ -256,25 +256,25 @@ func addGroup(c *fiber.Ctx) error {
 		}}
 
 		if _, err = getCollection(client, "group").InsertOne(ctx, group); err != nil {
-            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
 
 		return c.SendStatus(fiber.StatusOK)
 	case 1:
-        filter2 := bson.M{ "ott": parser.Ott, "account.id": parser.OttId, "account.pw": parser.OttPw, "members.app_id": parser.AppId }
-	    num, err := getCollection(client, "group").CountDocuments(ctx, filter2)
-        if err != nil {
-            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
+		filter2 := bson.M{"ott": parser.Ott, "account.id": parser.OttId, "account.pw": parser.OttPw, "members.app_id": parser.AppId}
+		num, err := getCollection(client, "group").CountDocuments(ctx, filter2)
+		if err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
 
-        if num == 1 {
-	        return c.SendStatus(fiber.StatusUnauthorized)
-        }
+		if num == 1 {
+			return c.SendStatus(fiber.StatusUnauthorized)
+		}
 
-        update := bson.M{"$push": bson.M{ "members": member{parser.AppId, 0} }, "$set": bson.M{ "updatetime": time.Now().Unix() }}
+		update := bson.M{"$push": bson.M{"members": member{parser.AppId, 0}}, "$set": bson.M{"updatetime": time.Now().Unix()}}
 		if _, err = getCollection(client, "group").UpdateOne(ctx, filter, update); err != nil {
-            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
 
 		return c.SendStatus(fiber.StatusOK)
 	}
@@ -284,9 +284,9 @@ func addGroup(c *fiber.Ctx) error {
 
 func delGroup(c *fiber.Ctx) error {
 	client, ctx, cancel, err := connectDB()
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 	defer cancel()
 	defer client.Disconnect(ctx)
 
@@ -294,70 +294,70 @@ func delGroup(c *fiber.Ctx) error {
 		AppId string `json:"app_id" bson:"app_id"`
 	}
 	if err = c.BodyParser(&parser); err != nil {
-        return c.SendStatus(fiber.StatusBadRequest)
-    }
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
 
-    _id, err := primitive.ObjectIDFromHex(c.Params("groupId"))
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	_id, err := primitive.ObjectIDFromHex(c.Params("groupId"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 
-    var group group
-    filter := bson.M{ "_id": _id, "members.app_id": parser.AppId }
+	var group group
+	filter := bson.M{"_id": _id, "members.app_id": parser.AppId}
 	if err = getCollection(client, "group").FindOne(ctx, filter).Decode(&group); err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 
-    if containAdminMembers(group.Members, parser.AppId) {
+	if containAdminMembers(group.Members, parser.AppId) {
 		if _, err = getCollection(client, "group").DeleteOne(ctx, filter); err != nil {
-            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
-        return c.SendStatus(fiber.StatusOK)
-    }
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
+		return c.SendStatus(fiber.StatusOK)
+	}
 
 	return c.SendStatus(fiber.StatusNotFound)
 }
 
 func setGroup(c *fiber.Ctx) error {
 	client, ctx, cancel, err := connectDB()
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 	defer cancel()
 	defer client.Disconnect(ctx)
 
 	var parser struct {
-        OttPw string `json:"ott_pw" bson:"ott_pw"`
-        Payment payment `json:"payment" bson:"payment"`
-        Membership membership `json:"membership" bson:"membership"`
+		OttPw      string     `json:"ott_pw" bson:"ott_pw"`
+		Payment    payment    `json:"payment" bson:"payment"`
+		Membership membership `json:"membership" bson:"membership"`
 	}
 	if err = c.BodyParser(&parser); err != nil {
-        return c.SendStatus(fiber.StatusBadRequest)
-    }
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
 
-    _id, err := primitive.ObjectIDFromHex(c.Params("groupId"))
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	_id, err := primitive.ObjectIDFromHex(c.Params("groupId"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 
-    filter := bson.M{ "_id": _id }
+	filter := bson.M{"_id": _id}
 	num, err := getCollection(client, "group").CountDocuments(ctx, filter)
 
-    if num == 1 {
-        update := bson.M{ "$set": bson.M{
-            "account.pw": parser.OttPw,
-            "account.payment.type": parser.Payment.Type,
-            "account.payment.detail": parser.Payment.Detail,
-            "account.payment.next": parser.Payment.Next,
-            "account.membership.type": parser.Membership.Type,
-            "account.membership.cost": parser.Membership.Cost,
-        } }
+	if num == 1 {
+		update := bson.M{"$set": bson.M{
+			"account.pw":              parser.OttPw,
+			"account.payment.type":    parser.Payment.Type,
+			"account.payment.detail":  parser.Payment.Detail,
+			"account.payment.next":    parser.Payment.Next,
+			"account.membership.type": parser.Membership.Type,
+			"account.membership.cost": parser.Membership.Cost,
+		}}
 		if _, err = getCollection(client, "group").UpdateOne(ctx, filter, update); err != nil {
-            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
 
 		return c.SendStatus(fiber.StatusOK)
-    }
+	}
 
 	return c.SendStatus(fiber.StatusNotFound)
 }
