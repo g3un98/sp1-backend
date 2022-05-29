@@ -17,7 +17,7 @@ type user struct {
 }
 
 const (
-    DB_URI = "mongo://db:27017"
+    DB_URI = "mongodb://db:27017"
     DB_NAME = "ott"
 )
 
