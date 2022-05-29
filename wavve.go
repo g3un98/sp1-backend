@@ -34,7 +34,7 @@ func wavveLogin(c *context.Context, a account) (string, error) {
 		); err != nil {
 			return "", err
 		}
-		return msg, nil
+        return `{ "message": "` + msg + `" }`, nil
 	}
 
 	return "", nil
