@@ -16,10 +16,10 @@ func main() {
 	app.Use(logger.New(), recover.New())
 
     app.Post("/user", addUser)
-    /*
     app.Delete("/user", delUser)
     app.Put("/user", setUser)
 
+    /*
     app.Post("/login", login)
 
     app.Get("/ott/info/:idx", getGroup)
