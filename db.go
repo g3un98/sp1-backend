@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"time"
-    "fmt"
 
 	"github.com/gofiber/fiber/v2"
 	_ "go.mongodb.org/mongo-driver/bson"
