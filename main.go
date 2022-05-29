@@ -16,6 +16,7 @@ func main() {
 	app.Use(logger.New(), recover.New())
 
     app.Post("/user", addUser)
+    /*
     app.Delete("/user", delUser)
     app.Put("/user", setUser)
 
@@ -25,6 +26,7 @@ func main() {
     app.Post("/ott/group", addGroup)
     app.Delete("/ott/group", delGroup)
     app.Put("/ott/info/:idx", setGroup)
+    */
 
 	netflixApi := app.Group("/netflix")
 	netflixApi.Post("/info", netflixInfo)

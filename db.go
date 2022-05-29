@@ -12,8 +12,8 @@ import (
 )
 
 type user struct {
-    appId string `json="app_id"`
-    appPw string `json="app_pw"`
+    appId string `json="app_id" bson="app_id"`
+    appPw string `json="app_pw" bson="app_pw"`
 }
 
 const (
