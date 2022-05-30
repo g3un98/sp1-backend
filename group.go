@@ -14,7 +14,7 @@ type member struct {
 }
 
 type group struct {
-	GroupId    primitive.ObjectID   `json:"groupId,omitempty" bson:"_id"`
+	GroupId    primitive.ObjectID   `json:"groupId,omitempty" bson:"_id,omitempty"`
 	Ott        string   `json:"ott" bson:"ott"`
 	Account    account  `json:"account" bson:"account"`
 	UpdateTime int64    `json:"update_time" bson:"update_time"`
