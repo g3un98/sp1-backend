@@ -169,7 +169,7 @@ func login(c *fiber.Ctx) error {
         }
 
         var group group
-        if err := sonic.Unmarshal(res, &group); err != nil {
+        if err := bson.Unmarshal(res, &group); err != nil {
             return fiber.NewError(fiber.StatusInternalServerError, err.Error())
         }
         
