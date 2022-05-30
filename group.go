@@ -14,7 +14,7 @@ type member struct {
 }
 
 type group struct {
-	GroupId    primitive.ObjectID   `json:"groupId" bson:"_id,omitempty"`
+	GroupId    primitive.ObjectID   `json:"groupId,omitempty" bson:"_id"`
 	Ott        string   `json:"ott" bson:"ott"`
 	Account    account  `json:"account" bson:"account"`
 	UpdateTime int64    `json:"update_time" bson:"update_time"`
@@ -105,12 +105,20 @@ func addGroup(c *fiber.Ctx) error {
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
-
 		if num == 1 {
 			return c.SendStatus(fiber.StatusUnauthorized)
 		}
 
-		update := bson.M{"$push": bson.M{"members": member{parser.AppId, 0}}, "$set": bson.M{"updatetime": time.Now().Unix()}}
+		filter3 := bson.M{"app_id": parser.AppId}
+		num, err = getCollection(client, "user").CountDocuments(ctx, filter3)
+		if err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
+		if num != 1 {
+			return c.SendStatus(fiber.StatusUnauthorized)
+		}
+
+		update := bson.M{"$push": bson.M{"members": member{parser.AppId, 0}}, "$set": bson.M{"update_time": time.Now().Unix()}}
 		if _, err = getCollection(client, "group").UpdateOne(ctx, filter, update); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
