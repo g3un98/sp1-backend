@@ -168,7 +168,7 @@ func login(c *fiber.Ctx) error {
             return fiber.NewError(fiber.StatusInternalServerError, err.Error())
         }
 
-        fmt.Println(res)
+        fmt.Println(string(res))
         var group group
         if err := sonic.Unmarshal(res, &group); err != nil {
             return fiber.NewError(fiber.StatusInternalServerError, err.Error())
