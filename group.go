@@ -174,7 +174,7 @@ func setGroup(c *fiber.Ctx) error {
 	var parser struct {
 		OttPw      string     `json:"ott_pw" bson:"ott_pw"`
 		Payment    payment    `json:"payment" bson:"payment"`
-		Membership membership `json:"membership,omitempty" bson:"membership,omitempty"`
+		Membership membership `json:"membership" bson:"membership"`
 	}
 	if err = c.BodyParser(&parser); err != nil {
 		return c.SendStatus(fiber.StatusBadRequest)

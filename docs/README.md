@@ -128,7 +128,7 @@
     "app_pw": "앱 계정 비밀번호",
     "groups": [
         {
-            "group_id": "12자리 문자열",
+            "group_id": "24자리 문자열",
             "ott": "OTT 서비스명",
             "account": {
                 "id": "OTT 계정 아이디",
@@ -168,13 +168,13 @@
 
 ### Request
 
-groudId는 12자리 문자열
+groudId는 24자리 문자열
 
 ### Response
 
 ```json
 {
-    "group_id": "12자리 문자열",
+    "group_id": "24자리 문자열",
     "ott": "OTT 서비스명",
     "account": {
         "id": "OTT 계정 아이디",

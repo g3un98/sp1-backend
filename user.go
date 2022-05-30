@@ -2,6 +2,7 @@ package main
 
 import (
     "fmt"
+    "encoding/json"
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
@@ -146,7 +147,7 @@ func login(c *fiber.Ctx) error {
         data struct {
             AppId string `json:"app_id" bson:"app_id"`
             AppPw string `json:"app_pw" bson:"app_pw"`
-            Groups []group `json:"groups" bson:"groups"`
+            Groups []group `json:"groups,omitempty" bson:"groups,omitempty"`
         }
     )
 
@@ -176,7 +177,8 @@ func login(c *fiber.Ctx) error {
         data.Groups = append(data.Groups, *group)
     }
 
-    body, err := sonic.Marshal(&data)
+    //body, err := sonic.Marshal(&data)
+    body, err := json.Marshal(&data)
     if err != nil {
         fiber.NewError(fiber.StatusInternalServerError, err.Error())
     }
