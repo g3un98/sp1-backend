@@ -176,6 +176,7 @@ func login(c *fiber.Ctx) error {
         }
         data.Groups = append(data.Groups, *group)
     }
+    fmt.Println(data)
 
     //body, err := sonic.Marshal(&data)
     body, err := json.Marshal(&data)
