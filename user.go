@@ -2,7 +2,6 @@ package main
 
 import (
     "fmt"
-    "encoding/json"
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
