@@ -159,7 +159,7 @@ groudId는 12자리 문자열
             "cost": "멤버십 가격"
         }
     },
-    "updatetime": "마지막 수정 시간 (Unix time)",
+    "update_time": "마지막 수정 시간 (Unix time)",
     "members": [
         { "app_id": "계정 아이디", "is_admin": "0: 그룹원 || 1: 그룹장" },
         ...
