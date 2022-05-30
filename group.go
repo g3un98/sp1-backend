@@ -14,7 +14,7 @@ type member struct {
 }
 
 type group struct {
-	GroupId    primitive.ObjectID   `json:"groupId,omitempty" bson:"_id,omitempty"`
+	GroupId    primitive.ObjectID   `json:"groupId" bson:"_id,omitempty"`
 	Ott        string   `json:"ott" bson:"ott"`
 	Account    account  `json:"account" bson:"account"`
 	UpdateTime int64    `json:"update_time" bson:"update_time"`
@@ -174,7 +174,7 @@ func setGroup(c *fiber.Ctx) error {
 	var parser struct {
 		OttPw      string     `json:"ott_pw" bson:"ott_pw"`
 		Payment    payment    `json:"payment" bson:"payment"`
-		Membership membership `json:"membership" bson:"membership"`
+		Membership membership `json:"membership,omitempty" bson:"membership,omitempty"`
 	}
 	if err = c.BodyParser(&parser); err != nil {
 		return c.SendStatus(fiber.StatusBadRequest)

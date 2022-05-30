@@ -1,6 +1,8 @@
 package main
 
 import (
+    "fmt"
+
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
@@ -160,14 +162,17 @@ func login(c *fiber.Ctx) error {
         return fiber.NewError(fiber.StatusInternalServerError, err.Error())
     }
 
-    var group group
     for _, result := range results {
         res, err := sonic.Marshal(result)
         if err != nil {
             return fiber.NewError(fiber.StatusInternalServerError, err.Error())
         }
 
-        sonic.Unmarshal(res, &group)
+        fmt.Println(res)
+        var group group
+        if err := sonic.Unmarshal(res, &group); err != nil {
+            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+        }
         data.Groups = append(data.Groups, group)
     }
 
