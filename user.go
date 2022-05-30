@@ -163,18 +163,16 @@ func login(c *fiber.Ctx) error {
     }
 
     for _, result := range results {
-        res, err := sonic.Marshal(result)
+        groupByte, err := bson.Marshal(result)
         if err != nil {
             return fiber.NewError(fiber.StatusInternalServerError, err.Error())
         }
 
         var group group
-        if err := bson.Unmarshal(res, &group); err != nil {
+        if err := bson.Unmarshal(groupByte, &group); err != nil {
             return fiber.NewError(fiber.StatusInternalServerError, err.Error())
         }
-        
-        fmt.Printf("\nres: %s\n", string(res))
-        fmt.Printf("\ngroup: %#v\n", group)
+
         data.Groups = append(data.Groups, group)
     }
     fmt.Printf("\ndata.Groups: %#v\n", data.Groups)
