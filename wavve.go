@@ -20,12 +20,12 @@ func getWavveAccount(id, pw string) (*account, error) {
 	account.Pw = pw
 
 	if err := wavveLogin(ctx, id, pw); err != nil {
-        return nil, err
+		return nil, err
 	}
 	defer wavveLogout(ctx)
 
 	var contents string
-    if err := chromedp.Run(
+	if err := chromedp.Run(
 		*ctx,
 		chromedp.Navigate(`https://www.wavve.com/my/subscription_ticket`),
 		chromedp.Text(`#contents`, &contents, chromedp.NodeVisible),
@@ -41,7 +41,7 @@ func getWavveAccount(id, pw string) (*account, error) {
 	}
 
 	var rawPaymentType, rawPaymentNext, rawMembershipType, rawMembershipCost string
-    if err := chromedp.Run(
+	if err := chromedp.Run(
 		*ctx,
 		chromedp.Text(`#contents > div.mypooq-inner-wrap > section > div > div > div > table > tbody > tr > td:nth-child(6) > span > span`, &rawPaymentType, chromedp.NodeVisible),
 		chromedp.Text(`#contents > div.mypooq-inner-wrap > section > div > div > div > table > tbody > tr > td:nth-child(5)`, &rawPaymentNext, chromedp.NodeVisible),
@@ -51,19 +51,19 @@ func getWavveAccount(id, pw string) (*account, error) {
 		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-    var (
-	    dummy string
-	    year, month, day int
-    )
-    if _, err := fmt.Sscanf(strings.Split(rawPaymentNext, " ")[0], "%d-%d-%d", &year, &month, &day); err != nil {
+	var (
+		dummy            string
+		year, month, day int
+	)
+	if _, err := fmt.Sscanf(strings.Split(rawPaymentNext, " ")[0], "%d-%d-%d", &year, &month, &day); err != nil {
 		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	}
 	account.Payment = payment{
 		Type: rawPaymentType,
 		Next: time.Date(year, time.Month(month), day+1, 0, 0, 0, 0, time.FixedZone("KST", 9*60*60)).Unix(),
 	}
 
-    if _, err := fmt.Sscanf(rawMembershipCost, "%d%s", &account.Membership.Cost, &dummy); err != nil {
+	if _, err := fmt.Sscanf(rawMembershipCost, "%d%s", &account.Membership.Cost, &dummy); err != nil {
 		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
@@ -80,8 +80,8 @@ func getWavveAccount(id, pw string) (*account, error) {
 		account.Membership.Type = MEMBERSHIP_WAVVE_TYPE_BUGS
 	case "Basic X KB 나라사랑카드":
 		account.Membership.Type = MEMBERSHIP_WAVVE_TYPE_KB
-    default:
-        return nil, fiber.NewError(fiber.StatusInternalServerError, rawMembershipType)
+	default:
+		return nil, fiber.NewError(fiber.StatusInternalServerError, rawMembershipType)
 	}
 
 	return &account, nil
@@ -114,7 +114,7 @@ func wavveLogin(c *context.Context, id, pw string) error {
 		); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
-        return fiber.NewError(fiber.StatusBadRequest, msg)
+		return fiber.NewError(fiber.StatusBadRequest, msg)
 	}
 
 	return nil
@@ -133,9 +133,9 @@ func wavveInfo(c *fiber.Ctx) error {
 	defer cancel()
 
 	var parser struct {
-        Id string `json:"id"`
-        Pw string `json:"pw"`
-    }
+		Id string `json:"id"`
+		Pw string `json:"pw"`
+	}
 	if err := c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -149,15 +149,15 @@ func wavveInfo(c *fiber.Ctx) error {
 	}
 	defer wavveLogout(ctx)
 
-    account, err := getWavveAccount(parser.Id, parser.Pw)
-    if err != nil {
-        return err
-    }
+	account, err := getWavveAccount(parser.Id, parser.Pw)
+	if err != nil {
+		return err
+	}
 
-	body, err := sonic.Marshal(&account)
+	bodyByte, err := sonic.Marshal(&account)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	return c.Send(body)
+	return c.Send(bodyByte)
 }

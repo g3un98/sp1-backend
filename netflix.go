@@ -17,7 +17,7 @@ func getNetflixAccount(id, pw string) (*account, error) {
 
 	if err := netflixLogin(ctx, id, pw); err != nil {
 		return nil, err
-    }
+	}
 	defer netflixLogout(ctx)
 
 	var account account
@@ -25,7 +25,7 @@ func getNetflixAccount(id, pw string) (*account, error) {
 	account.Pw = pw
 
 	var rawPayment, rawMembership string
-    if err := chromedp.Run(
+	if err := chromedp.Run(
 		*ctx,
 		chromedp.Navigate(`https://www.netflix.com/kr/youraccount`),
 		chromedp.Text(`div[class="account-section-group payment-details -wide"]`, &rawPayment, chromedp.NodeVisible),
@@ -42,7 +42,7 @@ func getNetflixAccount(id, pw string) (*account, error) {
 		account.Payment = payment{}
 	} else {
 		payments := strings.Split(rawPayment, "\n")
-        if _, err := fmt.Sscanf(payments[2], "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy); err != nil {
+		if _, err := fmt.Sscanf(payments[2], "%s %s %d%s %d%s %d%s", &dummy, &dummy, &year, &dummy, &month, &dummy, &day, &dummy); err != nil {
 			return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
 
@@ -119,29 +119,29 @@ func netflixInfo(c *fiber.Ctx) error {
 	defer cancel()
 
 	var parser struct {
-        Id string `json:"id"`
-        Pw string `json:"pw"`
-    }
+		Id string `json:"id"`
+		Pw string `json:"pw"`
+	}
 	if err := c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	if err := netflixLogin(ctx, parser.Id, parser.Pw); err != nil {
-        return err
-    }
+		return err
+	}
 	defer netflixLogout(ctx)
 
-    account, err := getNetflixAccount(parser.Id, parser.Pw)
-    if err != nil {
-        return err
-    }
+	account, err := getNetflixAccount(parser.Id, parser.Pw)
+	if err != nil {
+		return err
+	}
 
-	body, err := sonic.Marshal(&account)
+	bodyByte, err := sonic.Marshal(&account)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	return c.Send(body)
+	return c.Send(bodyByte)
 }
 
 func netflixUnsubscribe(c *fiber.Ctx) error {
@@ -149,16 +149,16 @@ func netflixUnsubscribe(c *fiber.Ctx) error {
 	defer cancel()
 
 	var parser struct {
-        Id string `json:"id"`
-        Pw string `json:"pw"`
-    }
+		Id string `json:"id"`
+		Pw string `json:"pw"`
+	}
 	if err := c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	if err := netflixLogin(ctx, parser.Id, parser.Pw); err != nil {
-        return err
-    }
+		return err
+	}
 	defer netflixLogout(ctx)
 
 	var url string
@@ -171,16 +171,16 @@ func netflixUnsubscribe(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-    switch url {
-    case "https://www.netflix.com/kr/":
-        return fiber.ErrBadRequest
-    case "https://www.netflix.com/cancelplan/confirm":
-        return c.SendStatus(fiber.StatusOK)
-    case "https://www.netflix.com/CancelPlan?locale=ko-KR":
-        break
-    default:
-        return fiber.NewError(fiber.StatusInternalServerError, url)
-    }
+	switch url {
+	case "https://www.netflix.com/kr/":
+		return fiber.ErrBadRequest
+	case "https://www.netflix.com/cancelplan/confirm":
+		return c.SendStatus(fiber.StatusOK)
+	case "https://www.netflix.com/CancelPlan?locale=ko-KR":
+		break
+	default:
+		return fiber.NewError(fiber.StatusInternalServerError, url)
+	}
 
 	if err := chromedp.Run(
 		*ctx,
@@ -191,9 +191,9 @@ func netflixUnsubscribe(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-    if url == "https://www.netflix.com/cancelplan/confirm" {
+	if url == "https://www.netflix.com/cancelplan/confirm" {
 		return c.SendStatus(fiber.StatusOK)
-    }
+	}
 
 	return fiber.NewError(fiber.StatusInternalServerError, url)
 }

@@ -1,7 +1,7 @@
 package main
 
 import (
-    "fmt"
+	"fmt"
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
@@ -21,10 +21,10 @@ func addUser(c *fiber.Ctx) error {
 	}
 	defer cancel()
 
-    var parser struct {
-        AppId string `json:"app_id" bson:"app_id"`
-        AppPw string `json:"app_pw" bson:"app_pw"`
-    }
+	var parser struct {
+		AppId string `json:"app_id" bson:"app_id"`
+		AppPw string `json:"app_pw" bson:"app_pw"`
+	}
 	if err = c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
@@ -54,10 +54,10 @@ func delUser(c *fiber.Ctx) error {
 	}
 	defer cancel()
 
-    var parser struct {
-        AppId string `json:"app_id" bson:"app_id"`
-        AppPw string `json:"app_pw" bson:"app_pw"`
-    }
+	var parser struct {
+		AppId string `json:"app_id" bson:"app_id"`
+		AppPw string `json:"app_pw" bson:"app_pw"`
+	}
 	if err = c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
@@ -87,11 +87,11 @@ func setUser(c *fiber.Ctx) error {
 	}
 	defer cancel()
 
-    var parser struct {
-        AppId string `json:"app_id" bson:"app_id"`
-        AppPw string `json:"app_pw" bson:"app_pw"`
-        AppEmail string `json:"app_email" bson:"app_email"`
-    }
+	var parser struct {
+		AppId    string `json:"app_id" bson:"app_id"`
+		AppPw    string `json:"app_pw" bson:"app_pw"`
+		AppEmail string `json:"app_email" bson:"app_email"`
+	}
 	if err = c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
@@ -122,10 +122,10 @@ func login(c *fiber.Ctx) error {
 	}
 	defer cancel()
 
-    var parser struct {
-        AppId string `json:"app_id" bson:"app_id"`
-        AppPw string `json:"app_pw" bson:"app_pw"`
-    }
+	var parser struct {
+		AppId string `json:"app_id" bson:"app_id"`
+		AppPw string `json:"app_pw" bson:"app_pw"`
+	}
 	if err = c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
@@ -138,49 +138,48 @@ func login(c *fiber.Ctx) error {
 	}
 
 	if num != 1 {
-	    return fiber.ErrNotFound
+		return fiber.ErrNotFound
 	}
 
-    var (
-        results []bson.M
-        data struct {
-            AppId string `json:"app_id" bson:"app_id"`
-            AppPw string `json:"app_pw" bson:"app_pw"`
-            Groups []group `json:"groups,omitempty" bson:"groups,omitempty"`
-        }
-    )
+	var (
+		results []bson.M
+		body    struct {
+			AppId  string  `json:"app_id" bson:"app_id"`
+			AppPw  string  `json:"app_pw" bson:"app_pw"`
+			Groups []group `json:"groups,omitempty" bson:"groups,omitempty"`
+		}
+	)
 
-    data.AppId = parser.AppId
-    data.AppPw = parser.AppPw
+	body.AppId = parser.AppId
+	body.AppPw = parser.AppPw
 
-    filter2 := bson.M{"members.app_id": parser.AppId}
+	filter2 := bson.M{"members.app_id": parser.AppId}
 	cur, err := getCollection(client, "group").Find(ctx, filter2)
-    if err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    if err = cur.All(ctx, &results); err != nil {
-        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	if err = cur.All(ctx, &results); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 
-    for _, result := range results {
-        groupByte, err := bson.Marshal(result)
-        if err != nil {
-            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
+	for _, result := range results {
+		groupByte, err := bson.Marshal(result)
+		if err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
 
-        var group group
-        if err := bson.Unmarshal(groupByte, &group); err != nil {
-            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
+		var group group
+		if err := bson.Unmarshal(groupByte, &group); err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
 
-        data.Groups = append(data.Groups, group)
-    }
-    fmt.Printf("\ndata.Groups: %#v\n", data.Groups)
+		body.Groups = append(body.Groups, group)
+	}
 
-    body, err := sonic.Marshal(&data)
-    if err != nil {
-        fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	bodyByte, err := sonic.Marshal(&body)
+	if err != nil {
+		fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
 
-    return c.Send(body)
+	return c.Send(bodyByte)
 }

@@ -32,9 +32,9 @@ func newClient() (*mongo.Client, context.Context, func(), error) {
 	}
 
 	return client, ctx, func() {
-        defer cancel()
-        defer client.Disconnect(ctx)
-    }, nil
+		defer cancel()
+		defer client.Disconnect(ctx)
+	}, nil
 }
 
 func getCollection(client *mongo.Client, colName string) *mongo.Collection {

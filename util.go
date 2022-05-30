@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-    "time"
+	"time"
 
 	"github.com/chromedp/chromedp"
 )
@@ -26,13 +26,13 @@ func containMembers(s []member, v string) bool {
 }
 
 func newChromedp() (*context.Context, func()) {
-    ctx, cancel1 := chromedp.NewContext(
-        context.Background(),
-    )
-    ctx, cancel2 := context.WithTimeout(ctx, 1*time.Minute)
+	ctx, cancel1 := chromedp.NewContext(
+		context.Background(),
+	)
+	ctx, cancel2 := context.WithTimeout(ctx, 1*time.Minute)
 
-    return &ctx, func() {
-        defer cancel1()
-        defer cancel2()
-    }
+	return &ctx, func() {
+		defer cancel1()
+		defer cancel2()
+	}
 }
