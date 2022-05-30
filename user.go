@@ -172,11 +172,11 @@ func login(c *fiber.Ctx) error {
         if err := sonic.Unmarshal(res, &group); err != nil {
             return fiber.NewError(fiber.StatusInternalServerError, err.Error())
         }
+        fmt.Printf("\nbefore group: %#v", group)
         data.Groups = append(data.Groups, group)
-        fmt.Printf("\ngroup: %#v", group)
-        fmt.Printf("\nGroups: %#v", data.Groups)
+        fmt.Printf("\nafter group: %#v", group)
     }
-    fmt.Printf("\ndata: %#v\n", data)
+    fmt.Printf("\ndata.Groups: %#v\n", data.Groups)
 
     body, err := sonic.Marshal(&data)
     if err != nil {
