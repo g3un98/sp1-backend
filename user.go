@@ -173,9 +173,10 @@ func login(c *fiber.Ctx) error {
             return fiber.NewError(fiber.StatusInternalServerError, err.Error())
         }
         data.Groups = append(data.Groups, group)
-        fmt.Println(data.Groups)
+        fmt.Printf("\ngroup: %#v", group)
+        fmt.Printf("\nGroups: %#v", data.Groups)
     }
-    fmt.Printf("\nDATA: %#v\n", data)
+    fmt.Printf("\ndata: %#v\n", data)
 
     body, err := sonic.Marshal(&data)
     if err != nil {
