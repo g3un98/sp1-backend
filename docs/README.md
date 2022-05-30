@@ -122,7 +122,37 @@
 
 ### Response
 
-상태 메시지 혹은 오류 메시지 반환
+```json
+{
+    "app_id": "앱 계정 아이디",
+    "app_pw": "앱 계정 비밀번호",
+    "groups": [
+        {
+            "group_id": "12자리 문자열",
+            "ott": "OTT 서비스명",
+            "account": {
+                "id": "OTT 계정 아이디",
+                "pw": "OTT 계정 비밀번호",
+                "payment": {
+                    "type": "결제 수단",
+                    "detail": "결제 수단 정보",
+                    "next": "다음 결제일"
+                },
+                "membership": {
+                    "type": "멤버십 타입 상수",
+                    "cost": "멤버십 가격"
+                }
+            },
+            "update_time": "마지막 수정 시간 (Unix time)",
+            "members": [
+                { "app_id": "계정 아이디", "is_admin": "0: 그룹원 || 1: 그룹장" },
+                ...
+            ]
+        },
+        ...
+    ]
+}
+```
 
 ### Status code
 

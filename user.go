@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -134,9 +135,46 @@ func login(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	if num == 1 {
-		return c.SendStatus(fiber.StatusOK)
+	if num != 1 {
+	    return fiber.ErrNotFound
 	}
 
-	return c.SendStatus(fiber.StatusNotFound)
+    var (
+        results []bson.M
+        data struct {
+            AppId string `json:"app_id" bson:"app_id"`
+            AppPw string `json:"app_pw" bson:"app_pw"`
+            Groups []group `json:"groups" bson:"groups"`
+        }
+    )
+
+    data.AppId = parser.AppId
+    data.AppPw = parser.AppPw
+
+    filter2 := bson.M{"members.app_id": parser.AppId}
+	cur, err := getCollection(client, "group").Find(ctx, filter2)
+    if err != nil {
+        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+    }
+    if err = cur.All(ctx, &results); err != nil {
+        return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+    }
+
+    var group group
+    for _, result := range results {
+        res, err := sonic.Marshal(result)
+        if err != nil {
+            return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+        }
+
+        sonic.Unmarshal(res, &group)
+        data.Groups = append(data.Groups, group)
+    }
+
+    body, err := sonic.Marshal(&data)
+    if err != nil {
+        fiber.NewError(fiber.StatusInternalServerError, err.Error())
+    }
+
+    return c.Send(body)
 }
