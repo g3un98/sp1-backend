@@ -169,11 +169,11 @@ func login(c *fiber.Ctx) error {
         }
 
         fmt.Println(string(res))
-        var group group
-        if err := sonic.Unmarshal(res, &group); err != nil {
+        group := new(group)
+        if err := sonic.Unmarshal(res, group); err != nil {
             return fiber.NewError(fiber.StatusInternalServerError, err.Error())
         }
-        data.Groups = append(data.Groups, group)
+        data.Groups = append(data.Groups, *group)
     }
 
     body, err := sonic.Marshal(&data)
