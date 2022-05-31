@@ -81,6 +81,15 @@ func postGroup(c *fiber.Ctx) error {
 	var group group
 	switch num {
 	case 0:
+		filter2 := bson.M{"app_id": parser.AppId}
+		num, err = getCollection(client, "user").CountDocuments(ctx, filter2)
+		if err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
+
+		if num != 1 {
+			return fiber.ErrUnauthorized
+		}
 		account, err := getAccount(parser.Ott, parser.OttId, parser.OttPw)
 		if err != nil {
 			return err
