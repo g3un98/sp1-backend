@@ -169,21 +169,22 @@ func putNetflixAccount(c *fiber.Ctx) error {
 		return err
 	}
 
-    fmt.Println(group.Account)
-    fmt.Println(*account)
     if group.Account != *account {
-
-        newAccountByte, err := bson.Marshal(account)
+        newAccountBsonByte, err := bson.Marshal(account)
         if err != nil {
 		    return fiber.NewError(fiber.StatusInternalServerError, err.Error())
         }
         var newAccountBson bson.M
-        if err = bson.Unmarshal(newAccountByte, &newAccountBson); err != nil {
+        if err = bson.Unmarshal(newAccountBsonByte, &newAccountBson); err != nil {
 		    return fiber.NewError(fiber.StatusInternalServerError, err.Error())
         }
 
         getCollection(client, "group").FindOneAndReplace(ctx, filter, newAccountBson)
 
+        newAccountByte, err := sonic.Marshal(account)
+        if err != nil {
+		    return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+        }
         return c.Send(newAccountByte)
     }
 
