@@ -170,6 +170,9 @@ func putNetflixAccount(c *fiber.Ctx) error {
 	}
 
     if group.Account != *account {
+        fmt.Println(group.Account)
+        fmt.Println(*account)
+
         newAccountByte, err := bson.Marshal(account)
         if err != nil {
 		    return fiber.NewError(fiber.StatusInternalServerError, err.Error())
