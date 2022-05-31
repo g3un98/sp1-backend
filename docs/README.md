@@ -25,7 +25,7 @@
 | Method | Path                                             | Description            |
 |--------|--------------------------------------------------|------------------------|
 | POST   | [/netflix/account](#post-netflixaccount)         | Netflix 계정 정보 조회 |
-| PUT    | [/netflix/account](#put-netflixaccount)          | Netflix 계정 정보 확인 |
+| PUT    | [/netflix/account](#put-netflixaccount)          | Netflix 계정 정보 갱신 |
 | DELETE | [/netflix/membership](#delete-netflixmembership) | Netflix 구독 해지      |
 
 ### Wavve
