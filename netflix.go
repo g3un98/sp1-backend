@@ -181,15 +181,13 @@ func putNetflixAccount(c *fiber.Ctx) error {
 
         update := bson.M{"$set": bson.M{"account": newAccountBson}}
         getCollection(client, "group").FindOneAndUpdate(ctx, filter, update)
-
-        newAccountByte, err := sonic.Marshal(account)
-        if err != nil {
-		    return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
-        return c.Send(newAccountByte)
     }
 
-    return c.SendStatus(fiber.StatusOK)
+    accountByte, err := sonic.Marshal(account)
+    if err != nil {
+	    return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+    }
+    return c.Send(accountByte)
 }
 
 func deleteNetflixMembership(c *fiber.Ctx) error {
