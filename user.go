@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
@@ -14,7 +12,7 @@ type user struct {
 	AppEmail string `json:"app_email,omitempty" bson:"app_email,omitempty"`
 }
 
-func addUser(c *fiber.Ctx) error {
+func postUser(c *fiber.Ctx) error {
 	client, ctx, cancel, err := newClient()
 	if err != nil {
 		return err
@@ -47,7 +45,7 @@ func addUser(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusUnauthorized)
 }
 
-func delUser(c *fiber.Ctx) error {
+func deleteUser(c *fiber.Ctx) error {
 	client, ctx, cancel, err := newClient()
 	if err != nil {
 		return err
@@ -80,7 +78,7 @@ func delUser(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusUnauthorized)
 }
 
-func setUser(c *fiber.Ctx) error {
+func putUser(c *fiber.Ctx) error {
 	client, ctx, cancel, err := newClient()
 	if err != nil {
 		return err
@@ -115,7 +113,7 @@ func setUser(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusUnauthorized)
 }
 
-func login(c *fiber.Ctx) error {
+func postLogin(c *fiber.Ctx) error {
 	client, ctx, cancel, err := newClient()
 	if err != nil {
 		return err

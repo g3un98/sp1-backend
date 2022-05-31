@@ -24,7 +24,8 @@
 
 | Method | Path                                             | Description            |
 |--------|--------------------------------------------------|------------------------|
-| POST   | [/netflix](#post-netflix)                        | Netflix 계정 정보 조회 |
+| POST   | [/netflix/account](#post-netflixaccount)         | Netflix 계정 정보 조회 |
+| PUT    | [/netflix/account](#put-netflixaccount)          | Netflix 계정 정보 확인 |
 | DELETE | [/netflix/membership](#delete-netflixmembership) | Netflix 구독 해지      |
 
 ### Wavve
@@ -293,15 +294,55 @@ groudId는 24자리 문자열
 | 405 Method Not Allowed    | 유효하지 않은 메소드 호출                                          |
 | 500 Internal Server Error | 타임 아웃 혹은 예상하지 못한 오류 발생 시, 오류 메시지와 함께 반환 |
 
-
-## POST /netflix
+## POST /netflix/account
 
 ### Request
 
 ```json
 {
-    "id": "Netflix 계정 아이디",
-    "pw": "Netflix 계정 비밀번호"
+    "ott_id": "Netflix 계정 아이디",
+    "ott_pw": "Netflix 계정 비밀번호"
+}
+```
+
+### Response
+
+```json
+{
+    "account": {
+        "id": "Netflix 계정 아이디",
+        "pw": "Netflix 계정 비밀번호",
+        "payment": {
+            "type": "결제 수단",
+            "detail": "결제 수단 정보",
+            "next": "다음 결제일"
+        },
+        "membership": {
+            "type": "멤버십 타입 상수",
+            "cost": "멤버십 가격"
+        }
+    }
+}
+```
+
+### Status code
+
+| Status                    | Note                                                               |
+|---------------------------|--------------------------------------------------------------------|
+| 200 OK                    | 계정 정보 반환                                                     |
+| 400 Bad Request           | id 혹은 pw가 유효하지 않음                                         |
+| 401 Unauthorized          | id 혹은 pw가 틀림, 오류 메시지가 함께 반환                         |
+| 405 Method Not Allowed    | 유효하지 않은 메소드 호출                                          |
+| 500 Internal Server Error | 타임 아웃 혹은 예상하지 못한 오류 발생 시, 오류 메시지와 함께 반환 |
+
+## PUT /netflix/account
+
+### Request
+
+```json
+{
+    "ott_id": "Netflix 계정 아이디",
+    "ott_pw": "Netflix 계정 비밀번호"
 }
 ```
 
@@ -341,8 +382,8 @@ groudId는 24자리 문자열
 
 ```json
 {
-    "id": "Netflix 계정 아이디",
-    "pw": "Netflix 계정 비밀번호"
+    "ott_id": "Netflix 계정 아이디",
+    "ott_pw": "Netflix 계정 비밀번호"
 }
 ```
 
@@ -366,8 +407,8 @@ groudId는 24자리 문자열
 
 ```json
 {
-    "id": "Wavve 계정 아이디",
-    "pw": "Wavve 계정 비밀번호"
+    "ott_id": "Wavve 계정 아이디",
+    "ott_pw": "Wavve 계정 비밀번호"
 }
 ```
 
