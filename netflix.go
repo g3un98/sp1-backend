@@ -179,7 +179,8 @@ func putNetflixAccount(c *fiber.Ctx) error {
 		    return fiber.NewError(fiber.StatusInternalServerError, err.Error())
         }
 
-        getCollection(client, "group").FindOneAndReplace(ctx, filter, newAccountBson)
+        update := bson.M{"$set": bson.M{"account": newAccountBson}}
+        getCollection(client, "group").FindOneAndUpdate(ctx, filter, update)
 
         newAccountByte, err := sonic.Marshal(account)
         if err != nil {
