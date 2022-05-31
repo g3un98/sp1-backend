@@ -128,28 +128,23 @@ func wavveLogout(c *context.Context) error {
 	)
 }
 
-func wavveInfo(c *fiber.Ctx) error {
-	ctx, cancel := newChromedp()
+func postWavveAccount(c *fiber.Ctx) error {
+	_, cancel := newChromedp()
 	defer cancel()
 
 	var parser struct {
-		Id string `json:"id"`
-		Pw string `json:"pw"`
+		OttId string `json:"ott_id"`
+		OttPw string `json:"ott_pw"`
 	}
 	if err := c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	if len(parser.Id) < 1 || len(parser.Pw) < 1 {
+	if len(parser.OttId) < 1 || len(parser.OttPw) < 1 {
 		return fiber.ErrBadRequest
 	}
 
-	if err := wavveLogin(ctx, parser.Id, parser.Pw); err != nil {
-		return err
-	}
-	defer wavveLogout(ctx)
-
-	account, err := getWavveAccount(parser.Id, parser.Pw)
+	account, err := getWavveAccount(parser.OttId, parser.OttPw)
 	if err != nil {
 		return err
 	}

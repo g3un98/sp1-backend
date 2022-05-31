@@ -54,7 +54,7 @@ func getGroup(c *fiber.Ctx) error {
 	return c.Send(bodyByte)
 }
 
-func addGroup(c *fiber.Ctx) error {
+func postGroup(c *fiber.Ctx) error {
 	client, ctx, cancel, err := newClient()
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func addGroup(c *fiber.Ctx) error {
 	return fiber.ErrBadRequest
 }
 
-func delGroup(c *fiber.Ctx) error {
+func deleteGroup(c *fiber.Ctx) error {
 	client, ctx, cancel, err := newClient()
 	if err != nil {
 		return err
@@ -164,7 +164,7 @@ func delGroup(c *fiber.Ctx) error {
 	return fiber.ErrNotFound
 }
 
-func setGroup(c *fiber.Ctx) error {
+func putGroup(c *fiber.Ctx) error {
 	client, ctx, cancel, err := newClient()
 	if err != nil {
 		return err

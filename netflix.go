@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"github.com/bytedance/sonic"
 	"github.com/chromedp/chromedp"
 	"github.com/gofiber/fiber/v2"
@@ -114,24 +115,19 @@ func netflixLogout(c *context.Context) error {
 	)
 }
 
-func netflixInfo(c *fiber.Ctx) error {
-	ctx, cancel := newChromedp()
+func postNetflixAccount(c *fiber.Ctx) error {
+	_, cancel := newChromedp()
 	defer cancel()
 
 	var parser struct {
-		Id string `json:"id"`
-		Pw string `json:"pw"`
+		OttId string `json:"ott_id"`
+		OttPw string `json:"ott_pw"`
 	}
 	if err := c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	if err := netflixLogin(ctx, parser.Id, parser.Pw); err != nil {
-		return err
-	}
-	defer netflixLogout(ctx)
-
-	account, err := getNetflixAccount(parser.Id, parser.Pw)
+	account, err := getNetflixAccount(parser.OttId, parser.OttPw)
 	if err != nil {
 		return err
 	}
@@ -144,19 +140,66 @@ func netflixInfo(c *fiber.Ctx) error {
 	return c.Send(bodyByte)
 }
 
-func netflixUnsubscribe(c *fiber.Ctx) error {
-	ctx, cancel := newChromedp()
+func putNetflixAccount(c *fiber.Ctx) error {
+	client, ctx, cancel, err := newClient()
+	if err != nil {
+		return err
+	}
 	defer cancel()
 
 	var parser struct {
-		Id string `json:"id"`
-		Pw string `json:"pw"`
+        OttId string `json:"ott_id" bson:"ott_id"`
+        OttPw string `json:"ott_pw" bson:"ott_pw"`
 	}
 	if err := c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	if err := netflixLogin(ctx, parser.Id, parser.Pw); err != nil {
+    var group group
+    filter := bson.M{"ott": "Netflix", "ott_id": parser.OttId, "ott_pw": parser.OttPw}
+    if err := getCollection(client, "group").FindOne(ctx, filter).Decode(&group); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+    }
+    
+    _, cancel = newChromedp()
+	defer cancel()
+
+	account, err := getNetflixAccount(parser.OttId, parser.OttPw)
+	if err != nil {
+		return err
+	}
+
+    if group.Account != *account {
+        newAccountByte, err := bson.Marshal(account)
+        if err != nil {
+		    return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+        }
+        var newAccountBson bson.M
+        if err = bson.Unmarshal(newAccountByte, &newAccountBson); err != nil {
+		    return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+        }
+
+        getCollection(client, "group").FindOneAndReplace(ctx, filter, newAccountBson)
+
+        return c.Send(newAccountByte)
+    }
+
+    return c.SendStatus(fiber.StatusOK)
+}
+
+func deleteNetflixMembership(c *fiber.Ctx) error {
+	ctx, cancel := newChromedp()
+	defer cancel()
+
+	var parser struct {
+		OttId string `json:"ott_id"`
+		OttPw string `json:"ott_pw"`
+	}
+	if err := c.BodyParser(&parser); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	if err := netflixLogin(ctx, parser.OttId, parser.OttPw); err != nil {
 		return err
 	}
 	defer netflixLogout(ctx)

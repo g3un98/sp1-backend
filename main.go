@@ -15,23 +15,24 @@ func main() {
 	})
 	app.Use(logger.New(), recover.New())
 
-	app.Post("/user", addUser)
-	app.Delete("/user", delUser)
-	app.Put("/user", setUser)
+	app.Post("/user", postUser)
+	app.Delete("/user", deleteUser)
+	app.Put("/user", putUser)
 
-	app.Post("/login", login)
+	app.Post("/login", postLogin)
 
 	app.Get("/group/:groupId", getGroup)
-	app.Post("/group", addGroup)
-	app.Delete("/group/:groupId", delGroup)
-	app.Put("/group/:groupId", setGroup)
+	app.Post("/group", postGroup)
+	app.Delete("/group/:groupId", deleteGroup)
+	app.Put("/group/:groupId", putGroup)
 
 	netflixApi := app.Group("/netflix")
-	netflixApi.Post("/info", netflixInfo)
-	netflixApi.Delete("/membership", netflixUnsubscribe)
+	netflixApi.Post("/account", postNetflixAccount)
+	netflixApi.Put("/account", putNetflixAccount)
+	netflixApi.Delete("/membership", deleteNetflixMembership)
 
 	wavveApi := app.Group("/wavve")
-	wavveApi.Post("/info", wavveInfo)
+	wavveApi.Post("/account", postWavveAccount)
 
 	app.Listen(":8000")
 }
