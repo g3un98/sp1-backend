@@ -72,29 +72,29 @@ func postGroup(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	filter := bson.M{"ott": parser.Ott, "account.id": parser.OttId, "account.pw": parser.OttPw}
-	num, err := getCollection(client, "group").CountDocuments(ctx, filter)
+	filter1 := bson.M{"ott": parser.Ott, "account.id": parser.OttId, "account.pw": parser.OttPw}
+	num, err := getCollection(client, "group").CountDocuments(ctx, filter1)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	var group group
+	filter2 := bson.M{"app_id": parser.AppId}
+	num, err = getCollection(client, "user").CountDocuments(ctx, filter2)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	if num != 1 {
+		return fiber.ErrUnauthorized
+	}
+
 	switch num {
 	case 0:
-		filter2 := bson.M{"app_id": parser.AppId}
-		num, err = getCollection(client, "user").CountDocuments(ctx, filter2)
-		if err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-		}
-
-		if num != 1 {
-			return fiber.ErrUnauthorized
-		}
 		account, err := getAccount(parser.Ott, parser.OttId, parser.OttPw)
 		if err != nil {
 			return err
 		}
 
+	    var group group
 		group.Ott = parser.Ott
 		group.Account = *account
 		group.UpdateTime = time.Now().Unix()
@@ -109,8 +109,8 @@ func postGroup(c *fiber.Ctx) error {
 
 		return c.SendStatus(fiber.StatusOK)
 	case 1:
-		filter2 := bson.M{"ott": parser.Ott, "account.id": parser.OttId, "account.pw": parser.OttPw, "members.app_id": parser.AppId}
-		num, err := getCollection(client, "group").CountDocuments(ctx, filter2)
+		filter3 := bson.M{"ott": parser.Ott, "account.id": parser.OttId, "account.pw": parser.OttPw, "members.app_id": parser.AppId}
+		num, err := getCollection(client, "group").CountDocuments(ctx, filter3)
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
@@ -118,17 +118,8 @@ func postGroup(c *fiber.Ctx) error {
 			return fiber.ErrUnauthorized
 		}
 
-		filter3 := bson.M{"app_id": parser.AppId}
-		num, err = getCollection(client, "user").CountDocuments(ctx, filter3)
-		if err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-		}
-		if num != 1 {
-			return fiber.ErrUnauthorized
-		}
-
 		update := bson.M{"$push": bson.M{"members": member{parser.AppId, 0}}, "$set": bson.M{"update_time": time.Now().Unix()}}
-		if _, err = getCollection(client, "group").UpdateOne(ctx, filter, update); err != nil {
+		if _, err = getCollection(client, "group").UpdateOne(ctx, filter1, update); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
 
