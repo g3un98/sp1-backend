@@ -139,9 +139,9 @@ func postWavveAccount(c *fiber.Ctx) error {
 	if err := c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
-    if parser.OttId == "" || parser.OttPw == "" {
+	if parser.OttId == "" || parser.OttPw == "" {
 		return fiber.ErrBadRequest
-    }
+	}
 
 	account, err := getWavveAccount(parser.OttId, parser.OttPw)
 	if err != nil {
