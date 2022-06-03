@@ -134,13 +134,18 @@ func postGroup(c *fiber.Ctx) error {
 		}
 
 		update := bson.M{"$push": bson.M{"members": member{parser.AppId, 0}}, "$set": bson.M{"update_time": time.Now().Unix()}}
-        res, err := getCollection(client, "group").UpdateOne(ctx, filter2, update)
-        if err != nil {
+        if _, err := getCollection(client, "group").UpdateOne(ctx, filter2, update); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
 
-        fmt.Printf("%#v\n", res)
-        body.GroupId = res.UpsertedID.(primitive.ObjectID).Hex()
+        var bodyBson struct {
+            GroupId primitive.ObjectID `bson:"_id"`
+        }
+	    if err = getCollection(client, "group").FindOne(ctx, filter2).Decode(&bodyBson); err != nil {
+		    return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	    }
+
+        body.GroupId = bodyBson.GroupId.Hex()
         bodyBytes, err := sonic.Marshal(body)
         if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
