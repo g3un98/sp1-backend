@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -87,6 +88,9 @@ func postGroup(c *fiber.Ctx) error {
 		return fiber.ErrUnauthorized
 	}
 
+    var body struct {
+        GroupId string `json="group_id"`
+    }
 	switch num {
 	case 0:
 		account, err := getAccount(parser.Ott, parser.OttId, parser.OttPw)
@@ -103,11 +107,18 @@ func postGroup(c *fiber.Ctx) error {
 			IsAdmin: 1,
 		}}
 
-		if _, err = getCollection(client, "group").InsertOne(ctx, group); err != nil {
+		res, err := getCollection(client, "group").InsertOne(ctx, group)
+        if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
 
-		return c.SendStatus(fiber.StatusOK)
+        body.GroupId = res.InsertedID.(string)
+        bodyBytes, err := sonic.Marshal(body)
+        if err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+        }
+
+		return c.Send(bodyBytes)
 	case 1:
 		filter3 := bson.M{"ott": parser.Ott, "account.id": parser.OttId, "account.pw": parser.OttPw, "members.app_id": parser.AppId}
 		num, err := getCollection(client, "group").CountDocuments(ctx, filter3)
@@ -119,11 +130,18 @@ func postGroup(c *fiber.Ctx) error {
 		}
 
 		update := bson.M{"$push": bson.M{"members": member{parser.AppId, 0}}, "$set": bson.M{"update_time": time.Now().Unix()}}
-		if _, err = getCollection(client, "group").UpdateOne(ctx, filter1, update); err != nil {
+        res, err := getCollection(client, "group").UpdateOne(ctx, filter1, update)
+        if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
 
-		return c.SendStatus(fiber.StatusOK)
+        body.GroupId = res.UpsertedID.(string)
+        bodyBytes, err := sonic.Marshal(body)
+        if err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+        }
+
+		return c.Send(bodyBytes)
 	}
 
 	return fiber.ErrBadRequest
