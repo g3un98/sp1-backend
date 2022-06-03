@@ -112,7 +112,7 @@ func postGroup(c *fiber.Ctx) error {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
 
-        body.GroupId = res.InsertedID.(string)
+        body.GroupId = res.InsertedID.(primitive.ObjectID).Hex()
         bodyBytes, err := sonic.Marshal(body)
         if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
@@ -135,7 +135,7 @@ func postGroup(c *fiber.Ctx) error {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
 
-        body.GroupId = res.UpsertedID.(string)
+        body.GroupId = res.UpsertedID.(primitive.ObjectID).Hex()
         bodyBytes, err := sonic.Marshal(body)
         if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
