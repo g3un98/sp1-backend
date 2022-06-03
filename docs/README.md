@@ -226,7 +226,11 @@ groudId는 24자리 문자열
 
 ### Response
 
-상태 메시지 혹은 오류 메시지 반환
+```json
+{
+    "group_id": "생성/수정된 그룹 아이디"
+}
+```
 
 ### Status code
 
