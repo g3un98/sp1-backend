@@ -124,8 +124,11 @@ func postNetflixAccount(c *fiber.Ctx) error {
 		OttPw string `json:"ott_pw"`
 	}
 	if err := c.BodyParser(&parser); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+    if parser.OttId == "" || parser.OttPw == "" {
+        return fiber.ErrBadRequest
+    }
 
 	account, err := getNetflixAccount(parser.OttId, parser.OttPw)
 	if err != nil {
@@ -152,8 +155,11 @@ func putNetflixAccount(c *fiber.Ctx) error {
         OttPw string `json:"ott_pw" bson:"ott_pw"`
 	}
 	if err := c.BodyParser(&parser); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+    if parser.OttId == "" || parser.OttPw == "" {
+        return fiber.ErrBadRequest
+    }
 
     var group group
     filter := bson.M{"ott": "Netflix", "account.id": parser.OttId, "account.pw": parser.OttPw}
@@ -199,8 +205,11 @@ func deleteNetflixMembership(c *fiber.Ctx) error {
 		OttPw string `json:"ott_pw"`
 	}
 	if err := c.BodyParser(&parser); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+    if parser.OttId == "" || parser.OttPw == "" {
+        return fiber.ErrBadRequest
+    }
 
 	if err := netflixLogin(ctx, parser.OttId, parser.OttPw); err != nil {
 		return err

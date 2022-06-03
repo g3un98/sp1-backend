@@ -27,6 +27,9 @@ func postUser(c *fiber.Ctx) error {
 	if err = c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+    if parser.AppId == "" || parser.AppPw == "" || parser.AppEmail == "" {
+		return fiber.ErrBadRequest
+    }
 
 	filter := bson.M{"app_id": parser.AppId}
 
@@ -60,6 +63,9 @@ func deleteUser(c *fiber.Ctx) error {
 	if err = c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+    if parser.AppId == "" || parser.AppPw == "" {
+		return fiber.ErrBadRequest
+    }
 
 	filter := bson.M{"app_id": parser.AppId, "app_pw": parser.AppPw}
 
@@ -94,6 +100,9 @@ func putUser(c *fiber.Ctx) error {
 	if err = c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+    if parser.AppId == "" || parser.AppPw == "" || parser.AppEmail == "" {
+		return fiber.ErrBadRequest
+    }
 
 	filter := bson.M{"app_id": parser.AppId, "app_pw": parser.AppPw}
 	update := bson.M{"$set": bson.M{"app_id": parser.AppId, "app_pw": parser.AppPw, "app_email": parser.AppEmail}}
@@ -128,6 +137,9 @@ func postLogin(c *fiber.Ctx) error {
 	if err = c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+    if parser.AppId == "" || parser.AppPw == "" {
+		return fiber.ErrBadRequest
+    }
 
 	filter := bson.M{"app_id": parser.AppId, "app_pw": parser.AppPw}
 

@@ -31,7 +31,7 @@ func getGroup(c *fiber.Ctx) error {
 
 	_id, err := primitive.ObjectIDFromHex(c.Params("groupId"))
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 	filter := bson.M{"_id": _id}
 
@@ -48,6 +48,7 @@ func getGroup(c *fiber.Ctx) error {
 	if err = getCollection(client, "group").FindOne(ctx, filter).Decode(&group); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
+
 	bodyByte, err := bson.Marshal(group)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
@@ -68,10 +69,12 @@ func postGroup(c *fiber.Ctx) error {
 		OttId string `json:"ott_id" bson:"ott_id"`
 		OttPw string `json:"ott_pw" bson:"ott_pw"`
 	}
-
 	if err = c.BodyParser(&parser); err != nil {
-		return fiber.ErrBadRequest
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+    if parser.AppId == "" || parser.Ott == "" || parser.OttId == "" || parser.OttPw == "" {
+		return fiber.ErrBadRequest
+    }
 
 	filter1 := bson.M{"app_id": parser.AppId}
     num, err := getCollection(client, "user").CountDocuments(ctx, filter1)
@@ -158,12 +161,15 @@ func deleteGroup(c *fiber.Ctx) error {
 		AppId string `json:"app_id" bson:"app_id"`
 	}
 	if err = c.BodyParser(&parser); err != nil {
-		return fiber.ErrBadRequest
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+    if parser.AppId == "" {
+		return fiber.ErrBadRequest
+    }
 
 	_id, err := primitive.ObjectIDFromHex(c.Params("groupId"))
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	var group group
@@ -195,12 +201,15 @@ func putGroup(c *fiber.Ctx) error {
 		Membership membership `json:"membership" bson:"membership"`
 	}
 	if err = c.BodyParser(&parser); err != nil {
-		return fiber.ErrBadRequest
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+    if parser.OttPw == "" || parser.Payment.Type == "" || parser.Payment.Next == 0 || parser.Membership.Type == 0 || parser.Membership.Cost == 0 {
+		return fiber.ErrBadRequest
+    }
 
 	_id, err := primitive.ObjectIDFromHex(c.Params("groupId"))
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	filter := bson.M{"_id": _id}
