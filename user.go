@@ -9,7 +9,7 @@ import (
 type user struct {
 	AppId    string `json:"app_id" bson:"app_id"`
 	AppPw    string `json:"app_pw" bson:"app_pw"`
-	AppEmail string `json:"app_email,omitempty" bson:"app_email,omitempty"`
+	AppEmail string `json:"app_email" bson:"app_email"`
 }
 
 func postUser(c *fiber.Ctx) error {
@@ -20,11 +20,15 @@ func postUser(c *fiber.Ctx) error {
 	defer cancel()
 
 	var parser struct {
-		AppId string `json:"app_id" bson:"app_id"`
-		AppPw string `json:"app_pw" bson:"app_pw"`
+		AppId    string `json:"app_id" bson:"app_id"`
+		AppPw    string `json:"app_pw" bson:"app_pw"`
+		AppEmail string `json:"app_email" bson:"app_email"`
 	}
 	if err = c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	if parser.AppId == "" || parser.AppPw == "" || parser.AppEmail == "" {
+		return fiber.ErrBadRequest
 	}
 
 	filter := bson.M{"app_id": parser.AppId}
@@ -58,6 +62,9 @@ func deleteUser(c *fiber.Ctx) error {
 	}
 	if err = c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	if parser.AppId == "" || parser.AppPw == "" {
+		return fiber.ErrBadRequest
 	}
 
 	filter := bson.M{"app_id": parser.AppId, "app_pw": parser.AppPw}
@@ -93,6 +100,9 @@ func putUser(c *fiber.Ctx) error {
 	if err = c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+	if parser.AppId == "" || parser.AppPw == "" || parser.AppEmail == "" {
+		return fiber.ErrBadRequest
+	}
 
 	filter := bson.M{"app_id": parser.AppId, "app_pw": parser.AppPw}
 	update := bson.M{"$set": bson.M{"app_id": parser.AppId, "app_pw": parser.AppPw, "app_email": parser.AppEmail}}
@@ -127,6 +137,9 @@ func postLogin(c *fiber.Ctx) error {
 	if err = c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+	if parser.AppId == "" || parser.AppPw == "" {
+		return fiber.ErrBadRequest
+	}
 
 	filter := bson.M{"app_id": parser.AppId, "app_pw": parser.AppPw}
 
@@ -147,7 +160,6 @@ func postLogin(c *fiber.Ctx) error {
 			Groups []group `json:"groups,omitempty" bson:"groups,omitempty"`
 		}
 	)
-
 	body.AppId = parser.AppId
 	body.AppPw = parser.AppPw
 

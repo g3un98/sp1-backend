@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"github.com/bytedance/sonic"
 	"github.com/chromedp/chromedp"
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func getNetflixAccount(id, pw string) (*account, error) {
@@ -124,7 +124,10 @@ func postNetflixAccount(c *fiber.Ctx) error {
 		OttPw string `json:"ott_pw"`
 	}
 	if err := c.BodyParser(&parser); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	if parser.OttId == "" || parser.OttPw == "" {
+		return fiber.ErrBadRequest
 	}
 
 	account, err := getNetflixAccount(parser.OttId, parser.OttPw)
@@ -148,20 +151,23 @@ func putNetflixAccount(c *fiber.Ctx) error {
 	defer cancel()
 
 	var parser struct {
-        OttId string `json:"ott_id" bson:"ott_id"`
-        OttPw string `json:"ott_pw" bson:"ott_pw"`
+		OttId string `json:"ott_id" bson:"ott_id"`
+		OttPw string `json:"ott_pw" bson:"ott_pw"`
 	}
 	if err := c.BodyParser(&parser); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	if parser.OttId == "" || parser.OttPw == "" {
+		return fiber.ErrBadRequest
+	}
+
+	var group group
+	filter := bson.M{"ott": "Netflix", "account.id": parser.OttId, "account.pw": parser.OttPw}
+	if err := getCollection(client, "group").FindOne(ctx, filter).Decode(&group); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-    var group group
-    filter := bson.M{"ott": "Netflix", "account.id": parser.OttId, "account.pw": parser.OttPw}
-    if err := getCollection(client, "group").FindOne(ctx, filter).Decode(&group); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    
-    _, cancel = newChromedp()
+	_, cancel = newChromedp()
 	defer cancel()
 
 	account, err := getNetflixAccount(parser.OttId, parser.OttPw)
@@ -169,25 +175,25 @@ func putNetflixAccount(c *fiber.Ctx) error {
 		return err
 	}
 
-    if group.Account != *account {
-        newAccountBsonByte, err := bson.Marshal(account)
-        if err != nil {
-		    return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
-        var newAccountBson bson.M
-        if err = bson.Unmarshal(newAccountBsonByte, &newAccountBson); err != nil {
-		    return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-        }
+	if group.Account != *account {
+		newAccountBsonByte, err := bson.Marshal(account)
+		if err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
+		var newAccountBson bson.M
+		if err = bson.Unmarshal(newAccountBsonByte, &newAccountBson); err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
 
-        update := bson.M{"$set": bson.M{"account": newAccountBson}}
-        getCollection(client, "group").FindOneAndUpdate(ctx, filter, update)
-    }
+		update := bson.M{"$set": bson.M{"account": newAccountBson}}
+		getCollection(client, "group").FindOneAndUpdate(ctx, filter, update)
+	}
 
-    accountByte, err := sonic.Marshal(account)
-    if err != nil {
-	    return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
-    return c.Send(accountByte)
+	accountByte, err := sonic.Marshal(account)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.Send(accountByte)
 }
 
 func deleteNetflixMembership(c *fiber.Ctx) error {
@@ -199,7 +205,10 @@ func deleteNetflixMembership(c *fiber.Ctx) error {
 		OttPw string `json:"ott_pw"`
 	}
 	if err := c.BodyParser(&parser); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	if parser.OttId == "" || parser.OttPw == "" {
+		return fiber.ErrBadRequest
 	}
 
 	if err := netflixLogin(ctx, parser.OttId, parser.OttPw); err != nil {

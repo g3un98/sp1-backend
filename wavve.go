@@ -137,10 +137,9 @@ func postWavveAccount(c *fiber.Ctx) error {
 		OttPw string `json:"ott_pw"`
 	}
 	if err := c.BodyParser(&parser); err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
-
-	if len(parser.OttId) < 1 || len(parser.OttPw) < 1 {
+	if parser.OttId == "" || parser.OttPw == "" {
 		return fiber.ErrBadRequest
 	}
 
