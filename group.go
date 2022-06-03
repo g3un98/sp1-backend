@@ -1,6 +1,7 @@
 package main
 
 import (
+    "fmt"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -15,7 +16,7 @@ type member struct {
 }
 
 type group struct {
-	GroupId    primitive.ObjectID `json:"groupId" bson:"_id,omitempty"`
+    GroupId    primitive.ObjectID `json:"group_id" bson:"_id,omitempty"`
 	Ott        string             `json:"ott" bson:"ott"`
 	Account    account            `json:"account" bson:"account"`
 	UpdateTime int64              `json:"update_time" bson:"update_time"`
@@ -92,7 +93,7 @@ func postGroup(c *fiber.Ctx) error {
 	}
 
     var body struct {
-        GroupId string `json="group_id"`
+        GroupId string `json:"group_id"`
     }
 	switch num {
 	case 0:
@@ -138,6 +139,7 @@ func postGroup(c *fiber.Ctx) error {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
 
+        fmt.Printf("%#v\n", res)
         body.GroupId = res.UpsertedID.(primitive.ObjectID).Hex()
         bodyBytes, err := sonic.Marshal(body)
         if err != nil {
