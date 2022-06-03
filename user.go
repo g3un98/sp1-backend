@@ -9,7 +9,7 @@ import (
 type user struct {
 	AppId    string `json:"app_id" bson:"app_id"`
 	AppPw    string `json:"app_pw" bson:"app_pw"`
-	AppEmail string `json:"app_email,omitempty" bson:"app_email,omitempty"`
+	AppEmail string `json:"app_email" bson:"app_email"`
 }
 
 func postUser(c *fiber.Ctx) error {
@@ -22,6 +22,7 @@ func postUser(c *fiber.Ctx) error {
 	var parser struct {
 		AppId string `json:"app_id" bson:"app_id"`
 		AppPw string `json:"app_pw" bson:"app_pw"`
+		AppEmail string `json:"app_email" bson:"app_email"`
 	}
 	if err = c.BodyParser(&parser); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
@@ -147,7 +148,6 @@ func postLogin(c *fiber.Ctx) error {
 			Groups []group `json:"groups,omitempty" bson:"groups,omitempty"`
 		}
 	)
-
 	body.AppId = parser.AppId
 	body.AppPw = parser.AppPw
 
