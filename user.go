@@ -157,7 +157,7 @@ func postLogin(c *fiber.Ctx) error {
 		body    struct {
 			AppId  string  `json:"app_id" bson:"app_id"`
 			AppPw  string  `json:"app_pw" bson:"app_pw"`
-			Groups []group `json:"groups,omitempty" bson:"groups,omitempty"`
+			Groups []group `json:"groups" bson:"groups"`
 		}
 	)
 	body.AppId = parser.AppId
