@@ -170,7 +170,7 @@
 
 ### Request
 
-groudId는 24자리 문자열
+groupId는 24자리 문자열
 
 ### Response
 
