@@ -1,7 +1,7 @@
 package main
 
 import (
-    "strings"
+	"strings"
 )
 
 type account struct {
