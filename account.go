@@ -1,5 +1,9 @@
 package main
 
+import (
+	"strings"
+)
+
 type account struct {
 	Id         string     `json:"id"`
 	Pw         string     `json:"pw"`
@@ -8,7 +12,7 @@ type account struct {
 }
 
 func getAccount(ott, id, pw string) (*account, error) {
-	switch ott {
+	switch strings.ToLower(ott) {
 	case "Netflix":
 		return getNetflixAccount(id, pw)
 	case "Wavve":
