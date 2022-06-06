@@ -32,7 +32,7 @@
 
 | Method | Path                                             | Description            |
 |--------|--------------------------------------------------|------------------------|
-| POST   | [/wavve](#post-wave)                             | Wavve 계정 정보 조회   |
+| POST   | [/wavve/account](#post-wavveaccount)                             | Wavve 계정 정보 조회   |
 
 ## POST /user
 
@@ -406,7 +406,7 @@ groupId는 24자리 문자열
 | 405 Method Not Allowed    | 유효하지 않은 메소드 호출                                          |
 | 500 Internal Server Error | 타임 아웃 혹은 예상하지 못한 오류 발생 시, 오류 메시지와 함께 반환 |
 
-## POST /wavve
+## POST /wavve/account
 
 ### Request
 
