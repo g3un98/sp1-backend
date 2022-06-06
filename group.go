@@ -49,10 +49,10 @@ func getGroup(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-    groupByte, err := sonic.Marshal(group)
-    if err != nil {
+	groupByte, err := sonic.Marshal(group)
+	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-    }
+	}
 
 	return c.Send(groupByte)
 }
