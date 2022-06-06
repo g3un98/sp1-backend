@@ -40,7 +40,7 @@ func getGroup(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	var group bson.M
+	var group group
 	if num != 1 {
 		return fiber.ErrNotFound
 	}
@@ -49,11 +49,12 @@ func getGroup(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	bodyByte, err := bson.Marshal(group)
-	if err != nil {
+    groupByte, err := sonic.Marshal(group)
+    if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
-	}
-	return c.Send(bodyByte)
+    }
+
+	return c.Send(groupByte)
 }
 
 func postGroup(c *fiber.Ctx) error {
