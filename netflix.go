@@ -162,7 +162,7 @@ func putNetflixAccount(c *fiber.Ctx) error {
 	}
 
 	var group group
-	filter := bson.M{"ott": "Netflix", "account.id": parser.OttId, "account.pw": parser.OttPw}
+	filter := bson.M{"ott": "netflix", "account.id": parser.OttId, "account.pw": parser.OttPw}
 	if err := getCollection(client, "group").FindOne(ctx, filter).Decode(&group); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
