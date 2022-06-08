@@ -129,9 +129,6 @@ func wavveLogout(c *context.Context) error {
 }
 
 func postWavveAccount(c *fiber.Ctx) error {
-	_, cancel := newChromedp()
-	defer cancel()
-
 	var parser struct {
 		OttId string `json:"ott_id"`
 		OttPw string `json:"ott_pw"`
