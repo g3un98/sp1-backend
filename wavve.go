@@ -64,6 +64,7 @@ func getWavveAccount(id, pw string) (*account, error) {
 		Next: time.Date(year, time.Month(month), day+1, 0, 0, 0, 0, time.FixedZone("KST", 9*60*60)).Unix(),
 	}
 
+    rawMembershipCost = strings.ReplaceAll(rawMembershipCost, ",", "")
 	if _, err := fmt.Sscanf(rawMembershipCost, "%d%s", &account.Membership.Cost, &dummy); err != nil {
 		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
