@@ -13,9 +13,9 @@ type account struct {
 
 func getAccount(ott, id, pw string) (*account, error) {
 	switch strings.ToLower(ott) {
-	case "Netflix":
+	case "netflix":
 		return getNetflixAccount(id, pw)
-	case "Wavve":
+	case "wavve":
 		return getWavveAccount(id, pw)
 	default:
 		return &account{

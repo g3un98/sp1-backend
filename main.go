@@ -33,6 +33,7 @@ func main() {
 
 	wavveApi := app.Group("/wavve")
 	wavveApi.Post("/account", postWavveAccount)
+	wavveApi.Put("/account", putWavveAccount)
 
 	app.Listen(":8000")
 }
