@@ -116,9 +116,6 @@ func netflixLogout(c *context.Context) error {
 }
 
 func postNetflixAccount(c *fiber.Ctx) error {
-	_, cancel := newChromedp()
-	defer cancel()
-
 	var parser struct {
 		OttId string `json:"ott_id"`
 		OttPw string `json:"ott_pw"`
@@ -166,9 +163,6 @@ func putNetflixAccount(c *fiber.Ctx) error {
 	if err := getCollection(client, "group").FindOne(ctx, filter).Decode(&group); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
-
-	_, cancel = newChromedp()
-	defer cancel()
 
 	account, err := getNetflixAccount(parser.OttId, parser.OttPw)
 	if err != nil {
