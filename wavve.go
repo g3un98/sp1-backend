@@ -9,6 +9,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/chromedp/chromedp"
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func getWavveAccount(id, pw string) (*account, error) {
@@ -63,6 +64,7 @@ func getWavveAccount(id, pw string) (*account, error) {
 		Next: time.Date(year, time.Month(month), day+1, 0, 0, 0, 0, time.FixedZone("KST", 9*60*60)).Unix(),
 	}
 
+	rawMembershipCost = strings.ReplaceAll(rawMembershipCost, ",", "")
 	if _, err := fmt.Sscanf(rawMembershipCost, "%d%s", &account.Membership.Cost, &dummy); err != nil {
 		return nil, fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -129,9 +131,6 @@ func wavveLogout(c *context.Context) error {
 }
 
 func postWavveAccount(c *fiber.Ctx) error {
-	_, cancel := newChromedp()
-	defer cancel()
-
 	var parser struct {
 		OttId string `json:"ott_id"`
 		OttPw string `json:"ott_pw"`
@@ -154,4 +153,54 @@ func postWavveAccount(c *fiber.Ctx) error {
 	}
 
 	return c.Send(bodyByte)
+}
+
+func putWavveAccount(c *fiber.Ctx) error {
+	client, ctx, cancel, err := newClient()
+	if err != nil {
+		return err
+	}
+	defer cancel()
+
+	var parser struct {
+		OttId string `json:"ott_id" bson:"ott_id"`
+		OttPw string `json:"ott_pw" bson:"ott_pw"`
+	}
+	if err := c.BodyParser(&parser); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	if parser.OttId == "" || parser.OttPw == "" {
+		return fiber.ErrBadRequest
+	}
+
+	var group group
+	filter := bson.M{"ott": "wavve", "account.id": parser.OttId, "account.pw": parser.OttPw}
+	if err := getCollection(client, "group").FindOne(ctx, filter).Decode(&group); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	account, err := getWavveAccount(parser.OttId, parser.OttPw)
+	if err != nil {
+		return err
+	}
+
+	if group.Account != *account {
+		newAccountBsonByte, err := bson.Marshal(account)
+		if err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
+		var newAccountBson bson.M
+		if err = bson.Unmarshal(newAccountBsonByte, &newAccountBson); err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
+
+		update := bson.M{"$set": bson.M{"account": newAccountBson}}
+		getCollection(client, "group").FindOneAndUpdate(ctx, filter, update)
+	}
+
+	accountByte, err := sonic.Marshal(account)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.Send(accountByte)
 }
